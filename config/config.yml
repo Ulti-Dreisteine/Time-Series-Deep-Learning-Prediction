@@ -1,0 +1,96 @@
+# params
+record_start_time: '2016050510'
+record_end_time: '2019050513'
+exist_record_time: '2018050513'
+
+
+# set model
+model_params:
+    train_use_cuda: True
+    pred_use_cuda: False
+    lr: 0.001
+    epochs: 40000
+    batch_size:
+        local: 4096
+        server: 4096
+    samples_len: 15000
+    pred_horizon_len: 8500
+    pred_dim: 72
+    target_column: 'pm25'
+    selected_columns: ['temp', 'sd', 'wd', 'weather', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2']
+    variable_bounds:
+        pm25: [0, 600]
+        temp: [-50, 60]
+        sd: [0, 150]
+        wd: [0, 20]
+        weather: [0, 30]
+        ws: [0, 12]
+        pm10: [0, 2000]
+        co: [0, 30]
+        no2: [0, 500]
+        o3: [0, 500]
+        so2: [0, 800]
+    time_lags:
+        pm25: 0
+        temp: 0
+        sd: 1
+        wd: 2
+        weather: 0
+        ws: 3
+        pm10: 0
+        co: 0
+        no2: 3
+        o3: 3
+        so2: 1
+    embed_lags:  # corresponding to acf decreasing to 0.6
+        pm25: 11
+        temp: 6
+        sd: 6
+        wd: 4
+        weather: 7
+        ws: 6
+        pm10: 11
+        co: 9
+        no2: 7
+        o3: 5
+        so2: 8
+    acf_lags:
+        pm25: 60
+        temp: 13
+        sd: 13
+        wd: 32
+        weather: 34
+        ws: 14
+        pm10: 60
+        co: 57
+        no2: 33
+        o3: 9
+        so2: 36
+
+
+# set logging
+logging:
+    version: 1
+    formatters:
+        simpleFormater:
+            format: '%(asctime)s - %(levelname)s - %(name)s[line:%(lineno)d]: %(message)s'
+            datefmt: '%Y-%m-%d %H:%M:%S'
+    handlers:
+        console_handler:
+            level: DEBUG
+            class: logging.StreamHandler
+            formatter: simpleFormater
+            stream: ext://sys.stdout
+        info_handler:
+            level: INFO
+            class : logging.FileHandler
+            formatter: simpleFormater
+            filename: logs/web_info.log
+        error_handler:
+            level: ERROR
+            class : logging.FileHandler
+            formatter: simpleFormater
+            filename: logs/web_error.log
+    root:
+        level: DEBUG
+        handlers: [console_handler, info_handler, error_handler]
