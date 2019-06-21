@@ -23,7 +23,7 @@ def smape(y_true, y_pred):
 	return torch.mean(torch.abs(torch.div(numerator, denominator)))
 
 
-def criterion(y_true, y_pred, weights):
+def criterion(y_true, y_pred):
 	"""
 	损失函数
 	:param y_true: torch.Tensor, 真实值
@@ -32,6 +32,6 @@ def criterion(y_true, y_pred, weights):
 	"""
 	
 	l1 = nn.L1Loss()
-	loss = torch.add(10 * l1(weights * y_true, weights * y_pred), smape(weights * y_true, weights * y_pred))
+	loss = torch.add(10 * l1(y_true, y_pred), smape(y_true, y_pred))
 	return loss
 

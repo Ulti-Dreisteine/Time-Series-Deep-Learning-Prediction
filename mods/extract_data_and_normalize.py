@@ -6,6 +6,7 @@ Created on Mon Oct  8 14:32:52 2018
 
 
 """
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import time
@@ -83,7 +84,7 @@ def normalize(data, columns):
 	return data_copy
 
 
-def extract_implemented_data(raw_data_file, use_local = True, save = True):
+def extract_implemented_data(raw_data_file, show_plot = True, use_local = True, save = True):
 	"""
 	提取时间戳连续化填补后的数据
 	:param raw_data_file: str, 原始数据名
@@ -114,16 +115,32 @@ def extract_implemented_data(raw_data_file, use_local = True, save = True):
 		for weather in weathers:
 			weather_code_dict[weather] = weathers.index(weather)
 		implemented_data['weather'] = implemented_data.loc[:, 'weather'].apply(lambda x: weather_code_dict[x])
-
+		
+		# 加入时刻特征
+		implemented_data['clock_num'] = implemented_data['time_stamp'].apply(lambda x: x % (24 * 3600))
+		
+		# 各时间序列作图
+		if show_plot:
+			columns = [config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']
+			plt.figure(figsize = [9, 7])
+			for i in range(len(columns)):
+				plt.subplot(len(columns) / 2, 2, i + 1)
+				plt.plot(list(implemented_data[columns[i]]), linewidth = 1)
+				plt.xlim([0, len(implemented_data)])
+				plt.xlabel('time (hr)')
+				plt.ylabel(columns[i] + ' value')
+				plt.tight_layout()
+		
 		# 归一化
 		target_column = config.conf['model_params']['target_column']
 		selected_columns = config.conf['model_params']['selected_columns']
+		continuous_columns = config.conf['model_params']['continuous_columns']
 		
 		print('\n')
-		for column in [target_column] + selected_columns:
+		for column in continuous_columns:
 			print('max {}: {}'.format(column, np.max(implemented_data[column])))
 		
-		total_implemented_normalized_data = normalize(implemented_data, [target_column] + selected_columns)
+		total_implemented_normalized_data = normalize(implemented_data, continuous_columns)
 		total_implemented_normalized_data = total_implemented_normalized_data[['city', 'ptime', 'time_stamp'] + [target_column] + selected_columns]
 
 	# 异常值替换

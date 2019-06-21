@@ -103,7 +103,7 @@ def band_pass_filtering(data):
 	embed_lags = config.conf['model_params']['embed_lags']
 	samples_len = len(data_copy)
 
-	columns = [config.conf['model_params']['target_column']] + config.conf['model_params']['selected_columns']
+	columns = [config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']
 	filtered_results = []
 	for column in columns:
 		lag = embed_lags[column]
@@ -151,7 +151,7 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 		data_filtered: pd.DataFrame, 滤波处理后的数据表, columns = [target_column, selected_columns_0, selected_column_1, ...]
 	"""
 	data_copy = copy.deepcopy(data)
-	columns = list(set([config.conf['model_params']['target_column']] + config.conf['model_params']['selected_columns']))
+	columns = list(set([config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']))
 	data_copy = data_copy[columns]
 	filtered_results = []
 	for column in columns:
@@ -162,6 +162,7 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 	filtered_results = pd.DataFrame(filtered_results, columns = columns)
 	
 	data_filtered = pd.concat([data[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
+	data_filtered = pd.concat([data_filtered, data[config.conf['model_params']['discrete_columns']]], axis = 1, sort = False)
 	
 	return data_filtered
 
