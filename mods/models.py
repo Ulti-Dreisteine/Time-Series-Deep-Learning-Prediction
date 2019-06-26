@@ -125,15 +125,15 @@ def initialize_nn_params(nn):
 
 def load_models():
 	"""载入已经训练好的模型"""
-	target_column = config.conf['model_params']['target_column']
+	target_columns = config.conf['model_params']['target_columns']
 	
 	with open('../tmp/model_struc_params.json', 'r') as f:
 		model_struc_params = json.load(f)
 	
 	model_paths = [
-		'../tmp/nn_state_dict_{}.pth'.format(target_column),
-		'../tmp/continuous_encoder_state_dict_{}.pth'.format(target_column),
-		'../tmp/discrete_encoder_state_dict_{}.pth'.format(target_column)
+		'../tmp/nn_state_dict_{}.pth'.format(target_columns),
+		'../tmp/continuous_encoder_state_dict_{}.pth'.format(target_columns),
+		'../tmp/discrete_encoder_state_dict_{}.pth'.format(target_columns)
 	]
 	
 	model_classes = [NN, ContinuousEncoder, DiscreteEncoder]
