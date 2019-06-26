@@ -7,20 +7,20 @@ exist_record_time: '2018050513'
 # set model
 model_params:
     # variable params
-    target_column: 'pm25'
-    selected_columns: ['temp', 'sd', 'wd', 'weather', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2', 'clock_num']
+    target_columns: ['pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
+    selected_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2', 'wd', 'weather', 'clock_num', 'weekday', 'month']
     continuous_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2']
-    discrete_columns: ['wd', 'weather', 'clock_num']
+    discrete_columns: ['wd', 'weather', 'clock_num', 'weekday', 'month']
     variable_bounds:
-        pm25: [0, 600]
-        temp: [-50, 60]
-        sd: [0, 150]
-        ws: [0, 12]
-        pm10: [0, 2000]
-        co: [0, 30]
-        no2: [0, 500]
-        o3: [0, 500]
-        so2: [0, 800]
+        pm25: [0, 500]
+        temp: [-20, 40]
+        sd: [0, 110]
+        ws: [0, 10]
+        pm10: [0, 800]
+        co: [0, 7]
+        no2: [0, 200]
+        o3: [0, 350]
+        so2: [0, 500]
 
     # defined params
     samples_len: 15000
@@ -30,9 +30,9 @@ model_params:
     # model training params
     train_use_cuda: True
     pred_use_cuda: False
-    lr: 0.0001
-    epochs: 100000
-    batch_size: 4000
+    lr: 0.0002
+    epochs: 200000
+    batch_size: 2000
 
     embed_lags:  # corresponding to acf decreasing to 0.6
         pm25: 5

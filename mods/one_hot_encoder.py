@@ -13,6 +13,7 @@ import sys
 sys.path.append('../')
 
 from mods.config_loader import config
+from mods.data_filtering import savitzky_golay_filtering
 
 
 def one_hot_encoding(data, save = True):
@@ -39,4 +40,16 @@ def one_hot_encoding(data, save = True):
 		total_data.to_csv('../tmp/total_encoded_data.csv', index = False)
 	
 	return total_data
+
+
+if __name__ == '__main__':
+	# 读取数据
+	file = '../tmp/total_implemented_normalized_data.csv'
+	data = pd.read_csv(file)
+	
+	# 数据滤波
+	data = savitzky_golay_filtering(data)
+	
+	# 数据编码
+	total_one_hot_encoded_data = one_hot_encoding(data, save = True)
 

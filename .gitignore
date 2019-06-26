@@ -1,2 +1,4 @@
-.idea/
+*.iml
+*.xml
 *.pyc
+lib/log.txt

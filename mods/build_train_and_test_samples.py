@@ -22,10 +22,9 @@ sys.path.append('../')
 from mods.config_loader import config
 
 
-def build_single_dim_manifold(time_series, embed_dim, lag, time_lag, direc = 1):
+def build_single_dim_manifold(time_series, embed_dim, lag, direc = 1):
 	"""
 	构建一维时间序列嵌入流形样本
-	:param time_lag: int, 对应的时间延迟
 	:param direc: int, 平移方向，1为向下，-1为向上
 	:param time_series: np.ndarray or pd.DataFrame, 一维时间序列, shape = (-1,)
 	:param embed_dim: int, 嵌入维数
@@ -35,7 +34,7 @@ def build_single_dim_manifold(time_series, embed_dim, lag, time_lag, direc = 1):
 	time_series_copy = copy.deepcopy(time_series)
 	manifold = []
 	for dim in range(embed_dim):
-		manifold.append(shift(shift(time_series_copy, direc * dim * lag), time_lag))
+		manifold.append(shift(time_series_copy, direc * dim * lag))
 	manifold = np.array(manifold).T
 	return manifold
 
@@ -51,10 +50,6 @@ def build_samples_data_frame(data):
 	embed_lags = config.conf['model_params']['embed_lags']
 	acf_lags = config.conf['model_params']['acf_lags']
 	
-	# 读取时滞数据
-	with open('../tmp/time_lags.json', 'r') as f:
-		time_lags = json.load(f)
-	
 	embed_dims = dict()
 	for column in continuous_columns:
 		embed_dims[column] = int(np.floor(acf_lags[column] / embed_lags[column]))
@@ -63,7 +58,7 @@ def build_samples_data_frame(data):
 	
 	data_new = data[['time_stamp']]
 	for column in continuous_columns:
-		samples = build_single_dim_manifold(data.loc[:, column], embed_dims[column], embed_lags[column], time_lags[column])
+		samples = build_single_dim_manifold(data.loc[:, column], embed_dims[column], embed_lags[column])
 		columns = [column + '_{}'.format(i) for i in range(samples.shape[1])]
 		samples = pd.DataFrame(samples, columns = columns)
 		data_new = pd.concat([data_new, samples], axis = 1, sort = True)
@@ -79,15 +74,16 @@ def build_targets_data_frame(data):
 	:param data: pd.DataFrame, 数据表
 	:return:
 	"""
-	target_column = config.conf['model_params']['target_column']
+	target_columns = config.conf['model_params']['target_columns']
 	embed_lag = 1
 	pred_dim = config.conf['model_params']['pred_dim']
 	
 	data_new = data[['time_stamp']]
-	samples = build_single_dim_manifold(data.loc[:, target_column], pred_dim, embed_lag, direc = -1, time_lag = 0)
-	columns = [target_column + '_{}'.format(i) for i in range(samples.shape[1])]
-	samples = pd.DataFrame(samples, columns = columns)
-	data_new = pd.concat([data_new, samples], axis = 1, sort = True)
+	for target_column in target_columns:
+		samples = build_single_dim_manifold(data.loc[:, target_column], pred_dim, embed_lag, direc = -1)
+		columns = [target_column + '_{}'.format(i) for i in range(samples.shape[1])]
+		samples = pd.DataFrame(samples, columns = columns)
+		data_new = pd.concat([data_new, samples], axis = 1, sort = True)
 	
 	return data_new
 
@@ -170,7 +166,10 @@ def build_train_and_verify_datasets():
 	
 	train_dataset = Data.TensorDataset(torch.from_numpy(X_train.astype(np.float32)), torch.from_numpy(y_train.astype(np.float32)))
 	trainloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
-	verify_dataset = Data.TensorDataset(torch.from_numpy(X_verify.astype(np.float32)), torch.from_numpy(y_verify.astype(np.float32)))
+	verify_dataset = Data.TensorDataset(
+		torch.from_numpy(X_verify.astype(np.float32)),
+		torch.from_numpy(y_verify.astype(np.float32))
+	)
 	verifyloader = DataLoader(verify_dataset, batch_size = X_verify.shape[0])
 	
 	return trainloader, verifyloader, X_train, y_train, X_verify, y_verify, continuous_columns_num

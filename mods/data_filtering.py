@@ -151,7 +151,7 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 		data_filtered: pd.DataFrame, 滤波处理后的数据表, columns = [target_column, selected_columns_0, selected_column_1, ...]
 	"""
 	data_copy = copy.deepcopy(data)
-	columns = list(set([config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']))
+	columns = list(set(config.conf['model_params']['target_columns'] + config.conf['model_params']['continuous_columns']))
 	data_copy = data_copy[columns]
 	filtered_results = []
 	for column in columns:

@@ -1,0 +1,7 @@
+python>=3.6
+lake: git clone https://github.com/CosmosShadow/lake，切换至develop分支，加入环境变量
+numpy>=1.16.3
+scipy>=1.2.1
+pandas>=0.24.0
+torch>=1.0.1
+statsmodel>=0.9.0

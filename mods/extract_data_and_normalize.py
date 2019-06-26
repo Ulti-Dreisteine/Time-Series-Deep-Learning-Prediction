@@ -4,9 +4,10 @@ Created on Mon Oct  8 14:32:52 2018
 
 @author: luolei
 
-
+提取原始数据并填补和归一化
 """
 import matplotlib.pyplot as plt
+import datetime
 import pandas as pd
 import numpy as np
 import time
@@ -93,6 +94,10 @@ def extract_implemented_data(raw_data_file, show_plot = True, use_local = True, 
 	:return:
 		total_implemented_normalized_data: pd.DataFrame, 时间连续性填补和归一化处理后的数据
 	"""
+	target_columns = config.conf['model_params']['target_columns']
+	selected_columns = config.conf['model_params']['selected_columns']
+	continuous_columns = config.conf['model_params']['continuous_columns']
+	
 	if use_local:
 		total_implemented_normalized_data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
 	else:
@@ -119,29 +124,41 @@ def extract_implemented_data(raw_data_file, show_plot = True, use_local = True, 
 		# 加入时刻特征
 		implemented_data['clock_num'] = implemented_data['time_stamp'].apply(lambda x: x % (24 * 3600))
 		
+		# data
+		implemented_data['date'] = implemented_data['time_stamp'].apply(lambda x: datetime.datetime.fromtimestamp(x))
+		
+		# 加入星期特征
+		implemented_data['weekday'] = implemented_data['date'].apply(
+			lambda x: x.weekday()
+		)
+		
+		# 加入月份信息
+		implemented_data['month'] = implemented_data['date'].apply(
+			lambda x: x.month
+		)
+		
 		# 各时间序列作图
 		if show_plot:
-			columns = [config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']
+			columns = list(set(target_columns + continuous_columns))
+			print(columns)
 			plt.figure(figsize = [9, 7])
 			for i in range(len(columns)):
-				plt.subplot(len(columns) / 2, 2, i + 1)
+				plt.subplot((len(columns) + 1) / 2, 2, i + 1)
 				plt.plot(list(implemented_data[columns[i]]), linewidth = 1)
 				plt.xlim([0, len(implemented_data)])
 				plt.xlabel('time (hr)')
 				plt.ylabel(columns[i] + ' value')
 				plt.tight_layout()
-		
+
 		# 归一化
-		target_column = config.conf['model_params']['target_column']
-		selected_columns = config.conf['model_params']['selected_columns']
-		continuous_columns = config.conf['model_params']['continuous_columns']
-		
 		print('\n')
 		for column in continuous_columns:
 			print('max {}: {}'.format(column, np.max(implemented_data[column])))
-		
+
 		total_implemented_normalized_data = normalize(implemented_data, continuous_columns)
-		total_implemented_normalized_data = total_implemented_normalized_data[['city', 'ptime', 'time_stamp'] + [target_column] + selected_columns]
+		total_implemented_normalized_data = total_implemented_normalized_data[
+			['city', 'ptime', 'time_stamp'] + list(set(target_columns + selected_columns))
+		]
 
 	# 异常值替换
 	total_implemented_normalized_data.replace(np.nan, 0.0, inplace = True)
