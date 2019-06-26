@@ -63,7 +63,7 @@ def merge_city_data(use_local = True, **kwargs):
 			file_data = pd.read_csv(path + name)
 			data = pd.concat([data, file_data], axis = 0, sort = False)
 	data = data.drop_duplicates('ptime').sort_values(by = 'ptime', ascending = True).reset_index(drop = True)
-	data = data[np.isnan(data.temp) == False]
+	data = data[np.isnan(data.temp) is False]
 	return data
 
 
