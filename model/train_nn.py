@@ -7,16 +7,15 @@ Created on Mon Oct  8 14:32:52 2018
 训练模型
 """
 import torch
-import numpy as np
 import json
 import sys
 
 sys.path.append('../')
 
 from mods.extract_data_and_normalize import extract_implemented_data
-from mods.models import NN, ContinuousEncoder, DiscreteEncoder, initialize_nn_params, initialize_continuous_encoder_params, \
+from mods.nn_models import NN, ContinuousEncoder, DiscreteEncoder, initialize_nn_params, initialize_continuous_encoder_params, \
 	initialize_discrete_encoder_params
-from mods.build_train_and_test_samples import build_train_and_verify_datasets
+from mods.build_train_and_test_samples_for_nn import build_train_and_verify_datasets
 from mods.config_loader import config
 from mods.loss_criterion import criterion
 from mods.one_hot_encoder import one_hot_encoding
@@ -29,8 +28,8 @@ def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, ver
 	
 	# 保存模型文件
 	torch.save(nn.state_dict(), '../tmp/nn_state_dict_{}.pth'.format(target_columns))
-	torch.save(continuous_encoder.state_dict(), '../tmp/continuous_encoder_state_dict_{}.pth'.format(target_columns))
-	torch.save(discrete_encoder.state_dict(), '../tmp/discrete_encoder_state_dict_{}.pth'.format(target_columns))
+	torch.save(continuous_encoder.state_dict(), '../tmp/nn_continuous_encoder_state_dict_{}.pth'.format(target_columns))
+	torch.save(discrete_encoder.state_dict(), '../tmp/nn_discrete_encoder_state_dict_{}.pth'.format(target_columns))
 	
 	# 保存模型结构参数
 	model_struc_params = {
@@ -49,16 +48,16 @@ def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, ver
 		}
 	}
 	
-	with open('../tmp/model_struc_params.json', 'w') as f:
+	with open('../tmp/nn_model_struc_params.json', 'w') as f:
 		json.dump(model_struc_params, f)
 		
 	# 损失函数记录
 	train_loss_list = [float(p.detach().cpu().numpy()) for p in train_loss_record]
 	verify_loss_list = [float(p.cpu().numpy()) for p in verify_loss_record]
 	
-	with open('../tmp/train_loss.json', 'w') as f:
+	with open('../tmp/nn_train_loss.json', 'w') as f:
 		json.dump(train_loss_list, f)
-	with open('../tmp/verify_loss.json', 'w') as f:
+	with open('../tmp/nn_verify_loss.json', 'w') as f:
 		json.dump(verify_loss_list, f)
 	
 
@@ -90,7 +89,7 @@ if __name__ == '__main__':
 	discrete_encoder = DiscreteEncoder(input_size, output_size)
 
 	input_size = continuous_encoder.connect_1.out_features + discrete_encoder.connect_0.out_features
-	hidden_size = [int(np.floor(input_size) / 2), int(np.floor(y_train.shape[1]))]
+	hidden_size = [input_size // 2, input_size // 2, y_train.shape[1] // 2]
 	output_size = y_train.shape[1]
 	nn = NN(input_size, hidden_size, output_size)
 
