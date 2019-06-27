@@ -72,7 +72,7 @@ if __name__ == '__main__':
 	_ = one_hot_encoding(data, save = True)
 	
 	# 设定参数 ————————————————————————————————————————————————————————————————————————————————————————-——————————————————————————————
-	use_cuda = config.conf['model_params']['train_use_cuda']
+	use_cuda = torch.cuda.is_available()
 	batch_size = config.conf['model_params']['batch_size']
 	lr = config.conf['model_params']['lr']
 	epochs = config.conf['model_params']['epochs']

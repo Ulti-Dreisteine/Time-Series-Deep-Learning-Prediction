@@ -28,8 +28,6 @@ model_params:
     pred_dim: 72
 
     # model training params
-    train_use_cuda: True
-    pred_use_cuda: False
     lr: 0.0002
     epochs: 200000
     batch_size: 2000
