@@ -11,7 +11,7 @@ import sys
 
 sys.path.append('../')
 
-from mods.build_train_and_test_samples import build_samples_data_frame, build_targets_data_frame, build_train_samples_and_targets, \
+from mods.build_train_and_test_samples_for_nn import build_samples_data_frame, build_targets_data_frame, build_train_samples_and_targets, \
 	build_test_samples_and_targets
 
 

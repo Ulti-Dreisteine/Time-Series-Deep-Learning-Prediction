@@ -17,8 +17,8 @@ import sys
 sys.path.append('../')
 
 from mods.config_loader import config
-from mods.build_train_and_test_samples import build_test_samples_and_targets, build_samples_data_frame
-from mods.models import load_models
+from mods.build_train_and_test_samples_for_nn import build_test_samples_and_targets, build_samples_data_frame
+from mods.nn_models import load_models
 from mods.partial_derivative_matrix import partial_derivative_matrix
 from mods.project_graph import callgraph
 

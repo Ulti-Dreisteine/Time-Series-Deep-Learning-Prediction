@@ -8,7 +8,6 @@ pytorch的神经网络模型
 """
 import json
 import sys
-import numpy as np
 import torch
 from torch import nn
 
@@ -132,8 +131,8 @@ def load_models():
 	
 	model_paths = [
 		'../tmp/nn_state_dict_{}.pth'.format(target_columns),
-		'../tmp/continuous_encoder_state_dict_{}.pth'.format(target_columns),
-		'../tmp/discrete_encoder_state_dict_{}.pth'.format(target_columns)
+		'../tmp/nn_continuous_encoder_state_dict_{}.pth'.format(target_columns),
+		'../tmp/nn_discrete_encoder_state_dict_{}.pth'.format(target_columns)
 	]
 	
 	model_classes = [NN, ContinuousEncoder, DiscreteEncoder]

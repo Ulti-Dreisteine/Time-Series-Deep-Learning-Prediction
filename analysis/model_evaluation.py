@@ -20,8 +20,8 @@ sys.path.append('../')
 
 from mods.config_loader import config
 from mods.model_evaluations import rmse, smape, mae, r2
-from mods.build_train_and_test_samples import build_test_samples_and_targets, build_targets_data_frame
-from mods.models import load_models
+from mods.build_train_and_test_samples_for_nn import build_test_samples_and_targets, build_targets_data_frame
+from mods.nn_models import load_models
 from mods.project_graph import callgraph
 
 
@@ -172,12 +172,12 @@ def model_evaluation_results():
 		
 		evaluations_results = pd.concat([evaluations_results, column_evaluation], axis = 1)
 	
-	evaluations_results.to_csv('../tmp/model_evaluation_results.csv', index = False)
+	evaluations_results.to_csv('../tmp/nn_evaluation_results.csv', index = False)
 	
 	# 打印loss曲线
-	with open('../tmp/train_loss.json', 'r') as f:
+	with open('../tmp/nn_train_loss.json', 'r') as f:
 		train_loss_list = json.load(f)
-	with open('../tmp/verify_loss.json', 'r') as f:
+	with open('../tmp/nn_verify_loss.json', 'r') as f:
 		verify_loss_list = json.load(f)
 	
 	plt.figure('loss curve', figsize = [4, 3])

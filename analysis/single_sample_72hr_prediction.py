@@ -14,8 +14,8 @@ import sys
 sys.path.append('../')
 
 from mods.config_loader import config
-from mods.build_train_and_test_samples import build_test_samples_and_targets
-from mods.models import load_models
+from mods.build_train_and_test_samples_for_nn import build_test_samples_and_targets
+from mods.nn_models import load_models
 from analysis.model_evaluation import model_prediction
 
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
 		y_test_model_dict[column] = y_test_model_dict[column] * (bounds[1] - bounds[0]) + bounds[0]
 		
 	# 载入计算得到的各时间预测步loss数据
-	eval_records = pd.read_csv('../tmp/model_evaluation_results.csv')
+	eval_records = pd.read_csv('../tmp/nn_evaluation_results.csv')
 	loss_dict = {}
 	for column in target_columns:
 		loss_dict[column] = 1.5 * np.array(eval_records.loc[:, column + '_mae']).flatten()
