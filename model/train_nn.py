@@ -64,7 +64,7 @@ def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, ver
 if __name__ == '__main__':
 	# 读取原始数据并整理成表 ————————————————————————————————————————————————————————————————————————————————————————————————————————————
 	file_name = '../tmp/taiyuan_cityHour.csv'
-	total_implemented_normalized_data = extract_implemented_data(file_name, use_local = False, save = True)
+	total_implemented_normalized_data = extract_implemented_data(file_name, use_local = True, save = True)
 	
 	# 数据滤波和编码
 	data = savitzky_golay_filtering(total_implemented_normalized_data)
@@ -81,11 +81,11 @@ if __name__ == '__main__':
 
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
 	input_size = continuous_columns_num
-	output_size = 20
+	output_size = 30
 	continuous_encoder = ContinuousEncoder(input_size, output_size)
 
 	input_size = X_train.shape[1] - continuous_columns_num
-	output_size = 20
+	output_size = 30
 	discrete_encoder = DiscreteEncoder(input_size, output_size)
 
 	input_size = continuous_encoder.connect_1.out_features + discrete_encoder.connect_0.out_features
@@ -128,6 +128,7 @@ if __name__ == '__main__':
 
 	for epoch in range(epochs):
 		# 训练集
+		nn.train()
 		for train_x, train_y in trainloader:
 			con_x, dis_x = train_x[:, :continuous_columns_num], train_x[:, continuous_columns_num:]
 			con_encoded_x = continuous_encoder(con_x)
@@ -142,7 +143,8 @@ if __name__ == '__main__':
 			optimizer.step()
 
 		train_loss_record.append(train_loss_fn)
-
+		
+		nn.eval()
 		with torch.no_grad():
 			for verify_x, verify_y in verifyloader:
 				con_x, dis_x = verify_x[:, :continuous_columns_num], verify_x[:, continuous_columns_num:]

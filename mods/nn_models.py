@@ -10,6 +10,7 @@ import json
 import sys
 import torch
 from torch import nn
+from torch.nn import init
 
 sys.path.append('../')
 
@@ -86,20 +87,29 @@ class NN(nn.Module):
 		self.input_size = input_size
 		self.output_size = output_size
 		self.hidden_size = hidden_size
+		
 		self.connec_0 = nn.Linear(self.input_size, self.hidden_size[0])
+		self.bn_0 = nn.BatchNorm1d(self.hidden_size[0], affine = False)
 		self.act_0 = nn.Sigmoid()
 		self.connec_1 = nn.Linear(self.hidden_size[0], self.hidden_size[1])
+		self.bn_1 = nn.BatchNorm1d(self.hidden_size[1], affine = False)
 		self.act_1 = nn.Sigmoid()
-		self.connec_2 = nn.Linear(self.hidden_size[1], self.output_size)
-		self.act_2 = nn.ReLU()
+		self.connec_2 = nn.Linear(self.hidden_size[1], self.hidden_size[2])
+		self.act_2 = nn.Sigmoid()
+		self.connec_3 = nn.Linear(self.hidden_size[2], self.output_size)
+		self.act_3 = nn.ReLU()
 
 	def forward(self, x):
 		x = self.connec_0(x)
+		x = self.bn_0(x)
 		x = self.act_0(x)
 		x = self.connec_1(x)
+		x = self.bn_1(x)
 		x = self.act_1(x)
 		x = self.connec_2(x)
 		x = self.act_2(x)
+		x = self.connec_3(x)
+		x = self.act_3(x)
 		return x
 	
 
@@ -117,8 +127,10 @@ def initialize_nn_params(nn):
 	nn.connec_0.bias.data = torch.rand(nn.hidden_size[0])
 	nn.connec_1.weight.data = torch.rand(nn.hidden_size[1], nn.hidden_size[0])
 	nn.connec_1.bias.data = torch.rand(nn.hidden_size[1])
-	nn.connec_2.weight.data = torch.rand(nn.output_size, nn.hidden_size[1])
-	nn.connec_2.bias.data = torch.rand(nn.output_size)
+	nn.connec_2.weight.data = torch.rand(nn.hidden_size[2], nn.hidden_size[1])
+	nn.connec_2.bias.data = torch.rand(nn.hidden_size[2])
+	nn.connec_3.weight.data = torch.rand(nn.output_size, nn.hidden_size[2])
+	nn.connec_3.bias.data = torch.rand(nn.output_size)
 	return nn
 
 
@@ -126,7 +138,7 @@ def load_models():
 	"""载入已经训练好的模型"""
 	target_columns = config.conf['model_params']['target_columns']
 	
-	with open('../tmp/model_struc_params.json', 'r') as f:
+	with open('../tmp/nn_model_struc_params.json', 'r') as f:
 		model_struc_params = json.load(f)
 	
 	model_paths = [
