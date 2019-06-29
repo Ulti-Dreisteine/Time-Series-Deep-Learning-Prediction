@@ -131,11 +131,10 @@ def nn_evaluation_results():
 	# 参数设置
 	pred_dim = config.conf['model_params']['pred_dim']
 	target_columns = config.conf['model_params']['target_columns']
-	
+
 	# 载入训练好的模型
 	[nn, continuous_encoder, discrete_encoder] = load_models()
-	nn.eval()
-	
+
 	# 构造测试数据
 	X_test, y_test, continuous_columns_num = build_test_samples_and_targets()
 
@@ -188,8 +187,8 @@ def nn_evaluation_results():
 		verify_loss_list = json.load(f)
 
 	plt.figure('loss curve', figsize = [4, 3])
-	plt.plot(train_loss_list[2000:])
-	plt.plot(verify_loss_list[2000:], 'r')
+	plt.plot(train_loss_list[4800:])
+	plt.plot(verify_loss_list[4800:], 'r')
 	plt.legend(['train set', 'verify set'])
 	plt.xlabel('epoch')
 	plt.ylabel('loss value')

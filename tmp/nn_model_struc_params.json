@@ -1,1 +1,1 @@
-{"nn": {"input_size": 60, "hidden_size": [30, 30, 36], "output_size": 72}, "continuous_encoder": {"input_size": 59, "output_size": 30}, "discrete_encoder": {"input_size": 79, "output_size": 30}}
+{"nn": {"input_size": 68, "hidden_size": [34, 216], "output_size": 432}, "continuous_encoder": {"input_size": 59, "output_size": 29}, "discrete_encoder": {"input_size": 79, "output_size": 39}}

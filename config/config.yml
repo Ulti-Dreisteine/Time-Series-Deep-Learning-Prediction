@@ -7,8 +7,8 @@ exist_record_time: '2018050513'
 # set model
 model_params:
     # variable params
-#    target_columns: ['pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
-    target_columns: ['pm25']
+    target_columns: ['pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
+#    target_columns: ['pm25']
     selected_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2', 'wd', 'weather', 'clock_num', 'weekday', 'month']
     continuous_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2']
     discrete_columns: ['wd', 'weather', 'clock_num', 'weekday', 'month']
@@ -29,7 +29,7 @@ model_params:
     pred_dim: 72
 
     # model training params
-    lr: 0.0001
+    lr: 0.001
     epochs: 100000
     batch_size: 5000
 

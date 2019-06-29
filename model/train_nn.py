@@ -81,15 +81,15 @@ if __name__ == '__main__':
 
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
 	input_size = continuous_columns_num
-	output_size = 30
+	output_size = input_size // 2
 	continuous_encoder = ContinuousEncoder(input_size, output_size)
 
 	input_size = X_train.shape[1] - continuous_columns_num
-	output_size = 30
+	output_size = input_size // 2
 	discrete_encoder = DiscreteEncoder(input_size, output_size)
 
 	input_size = continuous_encoder.connect_1.out_features + discrete_encoder.connect_0.out_features
-	hidden_size = [input_size // 2, input_size // 2, y_train.shape[1] // 2]
+	hidden_size = [input_size // 2, y_train.shape[1] // 2]
 	output_size = y_train.shape[1]
 	nn = NN(input_size, hidden_size, output_size)
 
@@ -118,17 +118,31 @@ if __name__ == '__main__':
 
 	# 模型训练和保存 ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 	train_loss_record, verify_loss_record = [], []
-	early_stop_steps = 200
-	sum = torch.tensor(early_stop_steps - 50).int()
-	stop_criterion = torch.tensor(1).byte()
-
-	if use_cuda:
-		sum = sum.cuda()
-		stop_criterion = stop_criterion.cuda()
 
 	for epoch in range(epochs):
+		# if epoch > 4000:
+		# 	optimizer = torch.optim.Adam(
+		# 		[
+		# 			{'params': nn.parameters()},
+		# 			{'params': continuous_encoder.parameters()},
+		# 			{'params': discrete_encoder.parameters()}
+		# 		],
+		# 		lr = lr / 2
+		# 	)
+		# elif epoch > 20000:
+		# 	optimizer = torch.optim.Adam(
+		# 		[
+		# 			{'params': nn.parameters()},
+		# 			{'params': continuous_encoder.parameters()},
+		# 			{'params': discrete_encoder.parameters()}
+		# 		],
+		# 		lr = lr / 5
+		# 	)
+			
 		# 训练集
 		nn.train()
+		continuous_encoder.train()
+		discrete_encoder.train()
 		for train_x, train_y in trainloader:
 			con_x, dis_x = train_x[:, :continuous_columns_num], train_x[:, continuous_columns_num:]
 			con_encoded_x = continuous_encoder(con_x)
@@ -145,6 +159,8 @@ if __name__ == '__main__':
 		train_loss_record.append(train_loss_fn)
 		
 		nn.eval()
+		continuous_encoder.eval()
+		discrete_encoder.eval()
 		with torch.no_grad():
 			for verify_x, verify_y in verifyloader:
 				con_x, dis_x = verify_x[:, :continuous_columns_num], verify_x[:, continuous_columns_num:]
@@ -160,7 +176,7 @@ if __name__ == '__main__':
 			print(epoch, train_loss_fn, verify_loss_fn)
 
 		# 保存模型
-		if epoch % 1000 == 0:
+		if epoch % 500 == 0:
 			save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)
 
 	save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)

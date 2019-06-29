@@ -55,7 +55,7 @@ def nn_feature_importance_results():
 	# 对各个污染物进行区分
 	p_deriv_matrix = np.abs(p_deriv_matrix)
 	
-	plt.figure(figsize = [6, 12])
+	plt.figure(figsize = [6, 3 * len(target_columns)])
 	plt.title('feature importance table')
 	p_deriv_dict = {}
 	for i in range(len(target_columns)):
@@ -75,7 +75,7 @@ def nn_feature_importance_results():
 		plt.xticks(fontsize = 6)
 		plt.yticks(fontsize = 6)
 		plt.ylabel('importance score', fontsize = 6)
-		plt.ylim([0, 1])
+		# plt.ylim([0, 2])
 		plt.legend([target_columns[i]], fontsize = 6)
 		plt.tight_layout()
 	
