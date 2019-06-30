@@ -120,25 +120,6 @@ if __name__ == '__main__':
 	train_loss_record, verify_loss_record = [], []
 
 	for epoch in range(epochs):
-		# if epoch > 4000:
-		# 	optimizer = torch.optim.Adam(
-		# 		[
-		# 			{'params': nn.parameters()},
-		# 			{'params': continuous_encoder.parameters()},
-		# 			{'params': discrete_encoder.parameters()}
-		# 		],
-		# 		lr = lr / 2
-		# 	)
-		# elif epoch > 20000:
-		# 	optimizer = torch.optim.Adam(
-		# 		[
-		# 			{'params': nn.parameters()},
-		# 			{'params': continuous_encoder.parameters()},
-		# 			{'params': discrete_encoder.parameters()}
-		# 		],
-		# 		lr = lr / 5
-		# 	)
-			
 		# 训练集
 		nn.train()
 		continuous_encoder.train()

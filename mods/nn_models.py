@@ -96,7 +96,7 @@ class NN(nn.Module):
 		self.bn_0 = nn.BatchNorm1d(self.hidden_size[0], affine = True)
 		self.act_0 = nn.Sigmoid()
 		self.connec_1 = nn.Linear(self.hidden_size[0], self.hidden_size[1])
-		self.dp_1 = nn.Dropout(0.2)
+		self.dp_1 = nn.Dropout(0.1)
 		self.act_1 = nn.Sigmoid()
 		self.connec_2 = nn.Linear(self.hidden_size[1], self.output_size)
 		self.act_2 = nn.ReLU()

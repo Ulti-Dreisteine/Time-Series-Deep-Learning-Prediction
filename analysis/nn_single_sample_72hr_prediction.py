@@ -30,7 +30,7 @@ if __name__ == '__main__':
 	# 构造测试数据
 	X_test, y_test, continuous_columns_num = build_test_samples_and_targets()
 	
-	sample_num = 7000
+	sample_num = 7500
 	x_test, y_test_raw = X_test[sample_num - 1: sample_num, :], y_test[sample_num - 1: sample_num, :]
 	y_test_raw = y_test_raw[-1:, :]
 	y_test_model = model_prediction(x_test, continuous_columns_num, continuous_encoder, discrete_encoder, nn)
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 		pred_curves[column]['lower'] = pred_curves[column]['middle'] - loss_dict[column]
 		pred_curves[column]['lower'][pred_curves[column]['lower'] < 0] = 0
 
-	plt.figure('pred results', figsize = [4, 3 * len(target_columns)])
+	plt.figure('pred results', figsize = [4, 2 * len(target_columns)])
 	for column in target_columns:
 		plt.subplot(len(target_columns), 1, target_columns.index(column) + 1)
 		plt.plot(y_test_raw_dict[column].flatten(), 'r')
