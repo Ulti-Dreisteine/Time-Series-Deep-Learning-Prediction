@@ -6,7 +6,6 @@ Created on Mon Oct  8 14:32:52 2018
 
 定义损失函数
 """
-import numpy as np
 import torch
 from torch import nn
 
@@ -32,6 +31,8 @@ def criterion(y_true, y_pred):
 	"""
 	
 	l1 = nn.L1Loss()
-	loss = torch.add(10 * l1(y_true, y_pred), smape(y_true, y_pred))
+	mse = nn.MSELoss()
+	loss = torch.add(50.0 * l1(y_true, y_pred), smape(y_true, y_pred))
+	loss = torch.add(loss, mse(y_true, y_pred))
 	return loss
 

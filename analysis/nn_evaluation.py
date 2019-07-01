@@ -131,31 +131,31 @@ def nn_evaluation_results():
 	# 参数设置
 	pred_dim = config.conf['model_params']['pred_dim']
 	target_columns = config.conf['model_params']['target_columns']
-
+	
 	# 载入训练好的模型
 	[nn, continuous_encoder, discrete_encoder] = load_models()
-
+	
 	# 构造测试数据
 	X_test, y_test, continuous_columns_num = build_test_samples_and_targets()
-
+	
 	# 真实目标值
 	y_test_raw = get_real_targets()
-
+	
 	# 模型预测
 	y_test_model = model_prediction(X_test, continuous_columns_num, continuous_encoder, discrete_encoder, nn)
-
+	
 	# 各污染物数据切分
 	y_test_raw_dict, y_test_model_dict = {}, {}
 	for i in range(len(target_columns)):
 		y_test_raw_dict[target_columns[i]] = y_test_raw[:, i * pred_dim: (i + 1) * pred_dim]
 		y_test_model_dict[target_columns[i]] = y_test_model[:, i * pred_dim: (i + 1) * pred_dim]
-
+	
 	# 还原为真实值
 	for column in target_columns:
 		bounds = config.conf['model_params']['variable_bounds'][column]
 		y_test_raw_dict[column] = y_test_raw_dict[column] * (bounds[1] - bounds[0]) + bounds[0]
 		y_test_model_dict[column] = y_test_model_dict[column] * (bounds[1] - bounds[0]) + bounds[0]
-
+	
 	# 模型效果评估
 	evaluations_results = pd.DataFrame(list(range(1, pred_dim + 1)), columns = ['pred_time_step'])
 	for column in target_columns:
@@ -173,19 +173,19 @@ def nn_evaluation_results():
 		column_evaluation[column + '_rmse'] = rmse_results
 		column_evaluation[column + '_r2'] = r2_results
 		column_evaluation[column + '_smape'] = smape_results
-
+		
 		column_evaluation = pd.DataFrame(column_evaluation)
-
+		
 		evaluations_results = pd.concat([evaluations_results, column_evaluation], axis = 1)
-
+	
 	evaluations_results.to_csv('../tmp/nn_evaluation_results.csv', index = False)
-
+	
 	# 打印loss曲线
 	with open('../tmp/nn_train_loss.json', 'r') as f:
 		train_loss_list = json.load(f)
 	with open('../tmp/nn_verify_loss.json', 'r') as f:
 		verify_loss_list = json.load(f)
-
+	
 	plt.figure('loss curve', figsize = [4, 3])
 	plt.plot(train_loss_list[4800:])
 	plt.plot(verify_loss_list[4800:], 'r')
@@ -193,23 +193,24 @@ def nn_evaluation_results():
 	plt.xlabel('epoch')
 	plt.ylabel('loss value')
 	plt.tight_layout()
-	
-	# # 误差箱型图
-	# # errors = (y_test_model - y_test_raw) / y_test_raw  	# 百分比误差
-	# errors = np.abs(y_test_model_dict['pm10'] - y_test_raw_dict['pm10'])  # 绝对误差
-	#
-	# samples_len = errors.shape[0]
-	# errors = pd.DataFrame(errors.reshape(-1, 1), columns = ['error'])
-	# errors['index'] = errors.index
-	# errors['time_step'] = errors.loc[:, 'index'].apply(lambda x: int(np.floor(x / samples_len)) + 1)
-	# plt.figure(figsize = [12, 3])
-	# sns.boxplot(data = errors, x = 'time_step', y = 'error', color = 'b', fliersize = 1, linewidth = 0.1)
-	# plt.xticks(fontsize = 6)
-	# plt.yticks(fontsize = 6)
-	# plt.xlabel('pred time step', fontsize = 10)
-	# plt.ylabel('error', fontsize = 10)
-	# plt.grid(True)
-	# plt.tight_layout()
+
+
+# # 误差箱型图
+# # errors = (y_test_model - y_test_raw) / y_test_raw  	# 百分比误差
+# errors = np.abs(y_test_model_dict['pm10'] - y_test_raw_dict['pm10'])  # 绝对误差
+#
+# samples_len = errors.shape[0]
+# errors = pd.DataFrame(errors.reshape(-1, 1), columns = ['error'])
+# errors['index'] = errors.index
+# errors['time_step'] = errors.loc[:, 'index'].apply(lambda x: int(np.floor(x / samples_len)) + 1)
+# plt.figure(figsize = [12, 3])
+# sns.boxplot(data = errors, x = 'time_step', y = 'error', color = 'b', fliersize = 1, linewidth = 0.1)
+# plt.xticks(fontsize = 6)
+# plt.yticks(fontsize = 6)
+# plt.xlabel('pred time step', fontsize = 10)
+# plt.ylabel('error', fontsize = 10)
+# plt.grid(True)
+# plt.tight_layout()
 
 
 if __name__ == '__main__':

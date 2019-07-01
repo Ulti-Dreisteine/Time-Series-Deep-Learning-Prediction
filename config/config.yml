@@ -8,7 +8,6 @@ exist_record_time: '2018050513'
 model_params:
     # variable params
     target_columns: ['pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
-#    target_columns: ['pm25']
     selected_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2', 'wd', 'weather', 'clock_num', 'weekday', 'month']
     continuous_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2']
     discrete_columns: ['wd', 'weather', 'clock_num', 'weekday', 'month']
@@ -30,27 +29,36 @@ model_params:
 
     # model training params
     lr: 0.001
-    epochs: 100000
-    batch_size: 5000
+    epochs: 400000
+    batch_size: 3000
 
     embed_lags:  # corresponding to acf decreasing to 0.6
-        pm25: 5
-        temp: 4
-        sd: 4
-        ws: 3
-        pm10: 6
-        co: 4
-        no2: 4
-        o3: 3
-        so2: 4
+#        pm25: 5
+#        temp: 4
+#        sd: 4
+#        ws: 3
+#        pm10: 6
+#        co: 4
+#        no2: 4
+#        o3: 3
+#        so2: 4
+        pm25: 4
+        temp: 3
+        sd: 3
+        ws: 2
+        pm10: 4
+        co: 3
+        no2: 3
+        o3: 2
+        so2: 3
 
     acf_lags:
-        pm25: 58
-        temp: 9
+        pm25: 78
+        temp: 10
         sd: 10
-        ws: 11
-        pm10: 60
-        co: 54
-        no2: 32
+        ws: 13
+        pm10: 80
+        co: 78
+        no2: 33
         o3: 8
-        so2: 33
+        so2: 78

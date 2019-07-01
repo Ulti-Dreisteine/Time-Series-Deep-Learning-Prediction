@@ -22,17 +22,20 @@ class ContinuousEncoder(nn.Module):
 		super(ContinuousEncoder, self).__init__()
 		self.input_size = input_size
 		self.output_size = output_size
+		
 		self.connect_0 = nn.Linear(self.input_size, self.input_size // 2)
 		self.bn_0 = nn.BatchNorm1d(self.input_size // 2, affine = True)
-		self.act_0 = nn.Sigmoid()
+		self.act_0 = nn.Tanh()
 		self.connect_1 = nn.Linear(self.input_size // 2, self.output_size)
-		self.act_1 = nn.Sigmoid()
+		self.bn_1 = nn.BatchNorm1d(self.output_size, affine = True)
+		self.act_1 = nn.Tanh()
 	
 	def forward(self, x):
 		x = self.connect_0(x)
 		x = self.bn_0(x)
 		x = self.act_0(x)
 		x = self.connect_1(x)
+		x = self.bn_1(x)
 		x = self.act_1(x)
 		return x
 
@@ -59,16 +62,17 @@ class DiscreteEncoder(nn.Module):
 		super(DiscreteEncoder, self).__init__()
 		self.input_size = input_size
 		self.output_size = output_size
+		
 		self.connect_0 = nn.Linear(self.input_size, self.output_size)
 		self.bn_0 = nn.BatchNorm1d(self.output_size, affine = True)
-		self.act_0 = nn.Sigmoid()
+		self.act_0 = nn.Tanh()
 	
 	def forward(self, x):
 		x = self.connect_0(x)
 		x = self.bn_0(x)
 		x = self.act_0(x)
 		return x
-	
+
 
 def initialize_discrete_encoder_params(discrete_encoder):
 	"""
@@ -83,7 +87,7 @@ def initialize_discrete_encoder_params(discrete_encoder):
 	discrete_encoder.connect_0.weight.data = torch.rand(discrete_encoder.output_size, discrete_encoder.input_size)
 	discrete_encoder.connect_0.bias.data = torch.rand(discrete_encoder.output_size)
 	return discrete_encoder
-	
+
 
 class NN(nn.Module):
 	def __init__(self, input_size, hidden_size, output_size):
@@ -94,28 +98,26 @@ class NN(nn.Module):
 		
 		self.connec_0 = nn.Linear(self.input_size, self.hidden_size[0])
 		self.bn_0 = nn.BatchNorm1d(self.hidden_size[0], affine = True)
-		self.act_0 = nn.Sigmoid()
+		self.act_0 = nn.Tanh()
 		self.connec_1 = nn.Linear(self.hidden_size[0], self.hidden_size[1])
-		self.dp_1 = nn.Dropout(0.1)
-		self.act_1 = nn.Sigmoid()
+		self.bn_1 = nn.BatchNorm1d(self.hidden_size[1], affine = True)
+		self.act_1 = nn.Tanh()
 		self.connec_2 = nn.Linear(self.hidden_size[1], self.output_size)
+		self.bn_2 = nn.BatchNorm1d(self.output_size, affine = True)
 		self.act_2 = nn.ReLU()
-		# self.connec_3 = nn.Linear(self.hidden_size[2], self.output_size)
-		# self.act_3 = nn.ReLU()
-
+	
 	def forward(self, x):
 		x = self.connec_0(x)
 		x = self.bn_0(x)
 		x = self.act_0(x)
 		x = self.connec_1(x)
-		x = self.dp_1(x)
+		x = self.bn_1(x)
 		x = self.act_1(x)
 		x = self.connec_2(x)
+		x = self.bn_2(x)
 		x = self.act_2(x)
-		# x = self.connec_3(x)
-		# x = self.act_3(x)
 		return x
-	
+
 
 def initialize_nn_params(nn):
 	"""
@@ -133,8 +135,6 @@ def initialize_nn_params(nn):
 	nn.connec_1.bias.data = torch.rand(nn.hidden_size[1])
 	nn.connec_2.weight.data = torch.rand(nn.output_size, nn.hidden_size[1])
 	nn.connec_2.bias.data = torch.rand(nn.output_size)
-	# nn.connec_3.weight.data = torch.rand(nn.output_size, nn.hidden_size[2])
-	# nn.connec_3.bias.data = torch.rand(nn.output_size)
 	return nn
 
 

@@ -50,7 +50,7 @@ def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, ver
 	
 	with open('../tmp/nn_model_struc_params.json', 'w') as f:
 		json.dump(model_struc_params, f)
-		
+	
 	# 损失函数记录
 	train_loss_list = [float(p.detach().cpu().numpy()) for p in train_loss_record]
 	verify_loss_list = [float(p.cpu().numpy()) for p in verify_loss_record]
@@ -59,7 +59,7 @@ def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, ver
 		json.dump(train_loss_list, f)
 	with open('../tmp/nn_verify_loss.json', 'w') as f:
 		json.dump(verify_loss_list, f)
-	
+
 
 if __name__ == '__main__':
 	# 读取原始数据并整理成表 ————————————————————————————————————————————————————————————————————————————————————————————————————————————
@@ -75,29 +75,29 @@ if __name__ == '__main__':
 	batch_size = config.conf['model_params']['batch_size']
 	lr = config.conf['model_params']['lr']
 	epochs = config.conf['model_params']['epochs']
-
+	
 	# 载入数据集，构建训练和验证集样本 ————————————————————————————————————————————————————————————————————————————————————————————————————
 	trainloader, verifyloader, X_train, y_train, X_verify, y_verify, continuous_columns_num = build_train_and_verify_datasets()
-
+	
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
 	input_size = continuous_columns_num
 	output_size = input_size // 2
 	continuous_encoder = ContinuousEncoder(input_size, output_size)
-
+	
 	input_size = X_train.shape[1] - continuous_columns_num
 	output_size = input_size // 2
 	discrete_encoder = DiscreteEncoder(input_size, output_size)
-
+	
 	input_size = continuous_encoder.connect_1.out_features + discrete_encoder.connect_0.out_features
 	hidden_size = [input_size // 2, y_train.shape[1] // 2]
 	output_size = y_train.shape[1]
 	nn = NN(input_size, hidden_size, output_size)
-
+	
 	# 初始化模型参数
 	continuous_encoder = initialize_continuous_encoder_params(continuous_encoder)
 	discrete_encoder = initialize_discrete_encoder_params(discrete_encoder)
 	nn = initialize_nn_params(nn)
-
+	
 	if use_cuda:
 		torch.cuda.empty_cache()
 		trainloader = [(train_x.cuda(), train_y.cuda()) for (train_x, train_y) in trainloader]
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 		continuous_encoder = continuous_encoder.cuda()
 		discrete_encoder = discrete_encoder.cuda()
 		nn = nn.cuda()
-
+	
 	# 指定优化器 —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 	optimizer = torch.optim.Adam(
 		[
@@ -115,10 +115,10 @@ if __name__ == '__main__':
 		],
 		lr = lr
 	)
-
+	
 	# 模型训练和保存 ——————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 	train_loss_record, verify_loss_record = [], []
-
+	
 	for epoch in range(epochs):
 		# 训练集
 		nn.train()
@@ -132,11 +132,11 @@ if __name__ == '__main__':
 			y_train_p = nn(encoded_x)
 			y_train_t = train_y
 			train_loss_fn = criterion(y_train_p, y_train_t)
-
+			
 			optimizer.zero_grad()
 			train_loss_fn.backward()
 			optimizer.step()
-
+		
 		train_loss_record.append(train_loss_fn)
 		
 		nn.eval()
@@ -152,14 +152,14 @@ if __name__ == '__main__':
 				y_verify_t = verify_y
 				verify_loss_fn = criterion(y_verify_p, y_verify_t)
 			verify_loss_record.append(verify_loss_fn)
-
+		
 		if epoch % 100 == 0:
 			print(epoch, train_loss_fn, verify_loss_fn)
-
+		
 		# 保存模型
 		if epoch % 500 == 0:
 			save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)
-
+	
 	save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)
 	
 	

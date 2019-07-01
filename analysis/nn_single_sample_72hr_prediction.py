@@ -18,7 +18,6 @@ from mods.build_train_and_test_samples_for_nn import build_test_samples_and_targ
 from mods.nn_models import load_models
 from analysis.nn_evaluation import model_prediction
 
-
 if __name__ == '__main__':
 	# 参数设置
 	pred_dim = config.conf['model_params']['pred_dim']
@@ -30,7 +29,7 @@ if __name__ == '__main__':
 	# 构造测试数据
 	X_test, y_test, continuous_columns_num = build_test_samples_and_targets()
 	
-	sample_num = 7500
+	sample_num = 4000
 	x_test, y_test_raw = X_test[sample_num - 1: sample_num, :], y_test[sample_num - 1: sample_num, :]
 	y_test_raw = y_test_raw[-1:, :]
 	y_test_model = model_prediction(x_test, continuous_columns_num, continuous_encoder, discrete_encoder, nn)
@@ -40,19 +39,19 @@ if __name__ == '__main__':
 	for i in range(len(target_columns)):
 		y_test_raw_dict[target_columns[i]] = y_test_raw[:, i * pred_dim: (i + 1) * pred_dim]
 		y_test_model_dict[target_columns[i]] = y_test_model[:, i * pred_dim: (i + 1) * pred_dim]
-
+	
 	# 还原为真实值
 	for column in target_columns:
 		bounds = config.conf['model_params']['variable_bounds'][column]
 		y_test_raw_dict[column] = y_test_raw_dict[column] * (bounds[1] - bounds[0]) + bounds[0]
 		y_test_model_dict[column] = y_test_model_dict[column] * (bounds[1] - bounds[0]) + bounds[0]
-
+	
 	# 载入计算得到的各时间预测步loss数据
 	eval_records = pd.read_csv('../tmp/nn_evaluation_results.csv')
 	loss_dict = {}
 	for column in target_columns:
 		loss_dict[column] = 1.5 * np.array(eval_records.loc[:, column + '_mae']).flatten()
-
+	
 	# 计算预测结果以及上下界数据
 	pred_curves = {}
 	for column in target_columns:
@@ -61,7 +60,7 @@ if __name__ == '__main__':
 		pred_curves[column]['upper'] = pred_curves[column]['middle'] + loss_dict[column]
 		pred_curves[column]['lower'] = pred_curves[column]['middle'] - loss_dict[column]
 		pred_curves[column]['lower'][pred_curves[column]['lower'] < 0] = 0
-
+	
 	plt.figure('pred results', figsize = [4, 2 * len(target_columns)])
 	for column in target_columns:
 		plt.subplot(len(target_columns), 1, target_columns.index(column) + 1)
