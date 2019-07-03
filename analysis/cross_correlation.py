@@ -138,41 +138,76 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 	return data_filtered
 
 
-# def peak_loc_and_value(ccf_values, de):
-
-
-
-if __name__ == '__main__':
-	data = pd.read_csv('../files/total_implemented_normalized_data.csv')
-	data = savitzky_golay_filtering(data)
-	
-	x_series = np.array(data['no2']).flatten()[1000:3000]
-	y_series = np.array(data['pm25']).flatten()[1000:3000]
-	
+def peak_loc_and_value(x_series, y_series, detect_len):
+	"""
+	检测峰值
+	:param x_series:
+	:param y_series:
+	:param detect_len: 检测半长
+	:return:
+	"""
 	ccf_results = []
-	detect_len = 5000
 	series_len = len(x_series)
 	for d in range(-detect_len, detect_len + 1):
 		ccf_results.append(cross_correlation(x_series, y_series, d))
-	
-	plt.plot(ccf_results)
-	plt.plot([0, len(ccf_results)], [0, 0], 'k--')
-	
-	"""从一段ccf计算结果中找出峰值位置和对应的值"""
+		
 	mean, sigma = np.mean(ccf_results), np.power(np.var(ccf_results), 0.5)
 	pos_corr_values = [p for p in ccf_results if (p > mean + 3.0 * sigma)]
 	neg_corr_values = [p for p in ccf_results if (p < mean - 3.0 * sigma)]
 	
+	start_loc = detect_len - series_len // 2
+	end_loc = detect_len + series_len // 2 + 1
+	ccf_seg = ccf_results[start_loc: end_loc]
 	if (len(pos_corr_values) == 0) & (len(neg_corr_values) == 0):
 		peak_value = 0
 		peak_loc = 0
 	else:
-		start_loc = detect_len - series_len + 1
-		end_loc = detect_len + series_len
-		ccf_seg = ccf_results[start_loc: end_loc]
 		if len(pos_corr_values) >= len(neg_corr_values):
 			peak_value = max(ccf_seg) - mean
-			peak_loc = ccf_seg.index(max(ccf_seg)) + detect_len
+			peak_loc = ccf_seg.index(max(ccf_seg)) + start_loc
 		else:
 			peak_value = mean - min(ccf_seg)
-			peak_loc = ccf_seg.index(min(ccf_seg)) + detect_len
+			peak_loc = ccf_seg.index(min(ccf_seg)) + start_loc
+	
+	time_lag = peak_loc - detect_len
+	
+	return ccf_seg, start_loc, end_loc, detect_len, time_lag, peak_value
+
+
+if __name__ == '__main__':
+	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
+	data = savitzky_golay_filtering(data)
+	
+	plt.figure(figsize = [14, 14])
+	columns = config.conf['model_params']['continuous_columns']
+	columns_num = len(columns)
+	ccf_and_time_lag = {}
+	for col_x in columns:
+		ccf_and_time_lag[col_x] = {}
+		for col_y in columns:
+			print('processing col_x: {}, col_y: {}'.format(col_x, col_y))
+			x_series = np.array(data[col_x]).flatten()[1000:5000]
+			y_series = np.array(data[col_y]).flatten()[1000:5000]
+			series_len = len(x_series)
+			detect_len = 5000
+			
+			ccf_seg, start_loc, end_loc, detect_len, time_lag, peak_value = peak_loc_and_value(x_series, y_series, detect_len)
+			ccf_and_time_lag[col_x][col_y] = {'ccf_value': peak_value, 'time_lag': time_lag}
+			
+			plt.subplot(columns_num, columns_num, columns_num * columns.index(col_x) + columns.index(col_y) + 1)
+			plt.plot(range(start_loc - detect_len, end_loc - detect_len), ccf_seg)
+			plt.fill_between(range(start_loc - detect_len, end_loc - detect_len), ccf_seg)
+			plt.plot([start_loc - detect_len, end_loc - detect_len], [0, 0], 'k--', linewidth = 0.3)
+			plt.plot([0, 0], [-1.0, 1.0], 'k-', linewidth = 0.3)
+			plt.xlim([-series_len // 2, series_len // 2])
+			plt.ylim([-1, 1])
+			plt.xticks(fontsize = 6)
+			plt.yticks(fontsize = 6)
+			if col_x == columns[0]:
+				plt.title(col_y, fontsize = 8)
+			
+			if col_y == columns[0]:
+				plt.ylabel(col_x, fontsize = 8)
+	
+	plt.tight_layout()
+	plt.savefig('../tmp/ccf_analysis_on_continuous.png')
