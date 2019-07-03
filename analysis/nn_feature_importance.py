@@ -71,7 +71,6 @@ def nn_feature_importance_results():
 		plt.xticks(fontsize = 6)
 		plt.yticks(fontsize = 6)
 		plt.ylabel('importance score', fontsize = 6)
-		# plt.ylim([0, 2])
 		plt.legend([target_columns[i]], fontsize = 6, loc = 'upper right')
 		plt.tight_layout()
 	
