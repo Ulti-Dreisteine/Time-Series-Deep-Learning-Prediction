@@ -9,6 +9,8 @@ one-hot编码
 from sklearn.preprocessing import OneHotEncoder
 import pandas as pd
 import sys
+import pickle
+import os.path as osp
 
 sys.path.append('../')
 
@@ -26,7 +28,32 @@ def one_hot_encoding(data, save = True):
 	for column in discrete_columns:
 		discrete_data = discrete_data.copy()
 		discrete_data[column] = discrete_data[column].apply(lambda x: int(x))
-		
+	
+	# # 对离散数据执行onehot编码
+	# total_data = pd.concat([data[['city', 'time_stamp']], continuous_data], axis = 1)
+	# encode_dict_path = "../tmp/one_hot_encoder_dict.pkl"
+	# if osp.exists(encode_dict_path):
+	# 	with open(encode_dict_path, "rb") as f:
+	# 		encode_dict = pickle.load(f)
+	# else:
+	# 	encode_dict = {}
+	#
+	# for column in discrete_columns:
+	# 	if column in encode_dict.keys():
+	# 		enc = encode_dict[column]
+	# 	else:
+	# 		enc = OneHotEncoder(categories = 'auto')
+	# 		enc.fit(discrete_data[[column]])
+	# 		encode_dict[column] = enc
+	# 	encoded_data = enc.transform(discrete_data[[column]]).toarray()
+	# 	encoded_data = pd.DataFrame(encoded_data, columns = [column + '_{}'.format(p) for p in range(encoded_data.shape[1])])
+	# 	total_data = pd.concat([total_data, encoded_data], axis = 1)
+	
+	# if save:
+	# 	total_data.to_csv('../tmp/total_encoded_data.csv', index = False)
+	# 	with open(encode_dict_path, "wb") as f:
+	# 		pickle.dump(encode_dict, f)
+	
 	# 对离散数据执行onehot编码
 	total_data = pd.concat([data[['city', 'time_stamp']], continuous_data], axis = 1)
 	enc = OneHotEncoder(categories = 'auto')
@@ -52,4 +79,3 @@ if __name__ == '__main__':
 	
 	# 数据编码
 	total_one_hot_encoded_data = one_hot_encoding(data, save = True)
-

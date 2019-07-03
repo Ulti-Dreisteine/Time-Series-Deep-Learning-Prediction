@@ -28,20 +28,11 @@ model_params:
     pred_dim: 72
 
     # model training params
-    lr: 0.001
-    epochs: 400000
+    lr: 0.0001
+    epochs: 12000
     batch_size: 3000
 
-    embed_lags:  # corresponding to acf decreasing to 0.6
-#        pm25: 5
-#        temp: 4
-#        sd: 4
-#        ws: 3
-#        pm10: 6
-#        co: 4
-#        no2: 4
-#        o3: 3
-#        so2: 4
+    embed_lags:  # corresponding to acf decreasing to 0.9
         pm25: 4
         temp: 3
         sd: 3

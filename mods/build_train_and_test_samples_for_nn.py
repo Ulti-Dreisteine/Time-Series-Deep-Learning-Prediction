@@ -174,4 +174,3 @@ def build_train_and_verify_datasets():
 	
 	return trainloader, verifyloader, X_train, y_train, X_verify, y_verify, continuous_columns_num
 
-

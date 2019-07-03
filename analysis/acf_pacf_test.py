@@ -24,7 +24,7 @@ def cal_acf_lag(acf_results, thresholds = None):
     :return:
     """
     if thresholds is None:
-        thresholds = [0.8, 0.05]
+        thresholds = [0.9, 0.0]
     
     try:
         lags = {}

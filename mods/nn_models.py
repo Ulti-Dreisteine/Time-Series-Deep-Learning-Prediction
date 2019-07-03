@@ -11,166 +11,83 @@ import sys
 import torch
 from torch import nn
 from torch.nn import init
+import torch.nn.functional as f
 
 sys.path.append('../')
 
 from mods.config_loader import config
 
 
-class ContinuousEncoder(nn.Module):
-	def __init__(self, input_size, output_size):
-		super(ContinuousEncoder, self).__init__()
-		self.input_size = input_size
-		self.output_size = output_size
-		
-		self.connect_0 = nn.Linear(self.input_size, self.input_size // 2)
-		self.bn_0 = nn.BatchNorm1d(self.input_size // 2, affine = True)
-		self.act_0 = nn.Tanh()
-		self.connect_1 = nn.Linear(self.input_size // 2, self.output_size)
-		self.bn_1 = nn.BatchNorm1d(self.output_size, affine = True)
-		self.act_1 = nn.Tanh()
-	
-	def forward(self, x):
-		x = self.connect_0(x)
-		x = self.bn_0(x)
-		x = self.act_0(x)
-		x = self.connect_1(x)
-		x = self.bn_1(x)
-		x = self.act_1(x)
-		return x
-
-
-def initialize_continuous_encoder_params(continuous_encoder):
-	"""
-	初始化模型参数
-	:param nn: NN(), 神经网络模型
-	:param input_size: int, 输入维数
-	:param hidden_size: list of ints, 中间隐含层维数
-	:param output_size: int, 输出维数
-	:return:
-		nn, NN(), 参数初始化后的神经网络模型
-	"""
-	continuous_encoder.connect_0.weight.data = torch.rand(continuous_encoder.input_size // 2, continuous_encoder.input_size)
-	continuous_encoder.connect_0.bias.data = torch.rand(continuous_encoder.input_size // 2)
-	continuous_encoder.connect_1.weight.data = torch.rand(continuous_encoder.output_size, continuous_encoder.input_size // 2)
-	continuous_encoder.connect_1.bias.data = torch.rand(continuous_encoder.output_size)
-	return continuous_encoder
-
-
-class DiscreteEncoder(nn.Module):
-	def __init__(self, input_size, output_size):
-		super(DiscreteEncoder, self).__init__()
-		self.input_size = input_size
-		self.output_size = output_size
-		
-		self.connect_0 = nn.Linear(self.input_size, self.output_size)
-		self.bn_0 = nn.BatchNorm1d(self.output_size, affine = True)
-		self.act_0 = nn.Tanh()
-	
-	def forward(self, x):
-		x = self.connect_0(x)
-		x = self.bn_0(x)
-		x = self.act_0(x)
-		return x
-
-
-def initialize_discrete_encoder_params(discrete_encoder):
-	"""
-	初始化模型参数
-	:param nn: NN(), 神经网络模型
-	:param input_size: int, 输入维数
-	:param hidden_size: list of ints, 中间隐含层维数
-	:param output_size: int, 输出维数
-	:return:
-		nn, NN(), 参数初始化后的神经网络模型
-	"""
-	discrete_encoder.connect_0.weight.data = torch.rand(discrete_encoder.output_size, discrete_encoder.input_size)
-	discrete_encoder.connect_0.bias.data = torch.rand(discrete_encoder.output_size)
-	return discrete_encoder
-
-
 class NN(nn.Module):
-	def __init__(self, input_size, hidden_size, output_size):
+	def __init__(self, input_size, hidden_sizes, output_size):
 		super(NN, self).__init__()
 		self.input_size = input_size
+		self.hidden_sizes = hidden_sizes
 		self.output_size = output_size
-		self.hidden_size = hidden_size
 		
-		self.connec_0 = nn.Linear(self.input_size, self.hidden_size[0])
-		self.bn_0 = nn.BatchNorm1d(self.hidden_size[0], affine = True)
-		self.act_0 = nn.Tanh()
-		self.connec_1 = nn.Linear(self.hidden_size[0], self.hidden_size[1])
-		self.bn_1 = nn.BatchNorm1d(self.hidden_size[1], affine = True)
-		self.act_1 = nn.Tanh()
-		self.connec_2 = nn.Linear(self.hidden_size[1], self.output_size)
-		self.bn_2 = nn.BatchNorm1d(self.output_size, affine = True)
-		self.act_2 = nn.ReLU()
-	
+		self.bn_in = nn.BatchNorm1d(self.input_size, momentum = 0.5)
+		
+		self.fc_0 = nn.Linear(self.input_size, self.hidden_sizes[0])
+		self._init_layer(self.fc_0)
+		self.bn_0 = nn.BatchNorm1d(self.hidden_sizes[0], momentum = 0.5)
+		
+		self.fcs = []
+		self.bns = []
+		for i in range(len(hidden_sizes) - 1):
+			fc_i = nn.Linear(self.hidden_sizes[i], self.hidden_sizes[i + 1])
+			setattr(self, 'fc_{}'.format(i + 1), fc_i)
+			self._init_layer(fc_i)
+			bn_i = nn.BatchNorm1d(self.hidden_sizes[i + 1], momentum = 0.5)
+			setattr(self, 'bn_{}'.format(i + 1), bn_i)
+			self.fcs.append(fc_i)
+			self.bns.append(bn_i)
+		
+		self.fc_out = nn.Linear(self.hidden_sizes[-1], self.output_size)
+		self._init_layer(self.fc_out)
+		self.bn_out = nn.BatchNorm1d(self.output_size)
+		
+	def _init_layer(self, layer):
+		init.normal_(layer.weight)
+		init.constant_(layer.bias, 0.5)
+		
 	def forward(self, x):
-		x = self.connec_0(x)
+		x = self.bn_in(x)
+		x = self.fc_0(x)
 		x = self.bn_0(x)
-		x = self.act_0(x)
-		x = self.connec_1(x)
-		x = self.bn_1(x)
-		x = self.act_1(x)
-		x = self.connec_2(x)
-		x = self.bn_2(x)
-		x = self.act_2(x)
+		
+		for i in range(len(self.fcs)):
+			x = self.fcs[i](x)
+			x = self.bns[i](x)
+			x = torch.tanh(x)
+		
+		x = self.fc_out(x)
+		x = self.bn_out(x)
+		x = f.softplus(x)
+		
 		return x
-
-
-def initialize_nn_params(nn):
-	"""
-	初始化模型参数
-	:param nn: NN(), 神经网络模型
-	:param input_size: int, 输入维数
-	:param hidden_size: list of ints, 中间隐含层维数
-	:param output_size: int, 输出维数
-	:return:
-		nn, NN(), 参数初始化后的神经网络模型
-	"""
-	nn.connec_0.weight.data = torch.rand(nn.hidden_size[0], nn.input_size)  # attention: 注意shape是转置关系
-	nn.connec_0.bias.data = torch.rand(nn.hidden_size[0])
-	nn.connec_1.weight.data = torch.rand(nn.hidden_size[1], nn.hidden_size[0])
-	nn.connec_1.bias.data = torch.rand(nn.hidden_size[1])
-	nn.connec_2.weight.data = torch.rand(nn.output_size, nn.hidden_size[1])
-	nn.connec_2.bias.data = torch.rand(nn.output_size)
-	return nn
 
 
 def load_models():
 	"""载入已经训练好的模型"""
 	target_columns = config.conf['model_params']['target_columns']
 	
-	with open('../tmp/nn_model_struc_params.json', 'r') as f:
+	with open('../tmp/nn_struc_params.json', 'r') as f:
 		model_struc_params = json.load(f)
 	
-	model_paths = [
-		'../tmp/nn_state_dict_{}.pth'.format(target_columns),
-		'../tmp/nn_continuous_encoder_state_dict_{}.pth'.format(target_columns),
-		'../tmp/nn_discrete_encoder_state_dict_{}.pth'.format(target_columns)
-	]
+	model_path = '../tmp/nn_state_dict_{}.pth'.format(target_columns)
+	pretrained_model_dict = torch.load(model_path, map_location = 'cpu')
 	
-	model_classes = [NN, ContinuousEncoder, DiscreteEncoder]
-	model_names = ['nn', 'continuous_encoder', 'discrete_encoder']
-	models = []
-	for i in range(len(model_paths)):
-		pretrained_model_dict = torch.load(model_paths[i], map_location = 'cpu')
-		if i == 0:
-			input_size = model_struc_params[model_names[i]]['input_size']
-			hidden_size = model_struc_params[model_names[i]]['hidden_size']
-			output_size = model_struc_params[model_names[i]]['output_size']
-			model = model_classes[i](input_size, hidden_size, output_size)
-			model.load_state_dict(pretrained_model_dict, strict = False)
-			models.append(model)
-		else:
-			input_size = model_struc_params[model_names[i]]['input_size']
-			output_size = model_struc_params[model_names[i]]['output_size']
-			model = model_classes[i](input_size, output_size)
-			model.load_state_dict(pretrained_model_dict, strict = False)
-			models.append(model)
+	input_size = model_struc_params['nn_model']['input_size']
+	hidden_sizes = model_struc_params['nn_model']['hidden_sizes']
+	output_size = model_struc_params['nn_model']['output_size']
+	nn_model = NN(input_size, hidden_sizes, output_size)
+	nn_model.load_state_dict(pretrained_model_dict, strict = False)
 	
-	for i in range(len(models)):
-		models[i].eval()
+	nn_model.eval()
 	
-	return models
+	return nn_model
+
+
+if __name__ == '__main__':
+	nn_model = NN(2, [2, 3], 2)
+		

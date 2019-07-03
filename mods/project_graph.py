@@ -6,6 +6,7 @@ Created on Mon Oct  8 14:32:52 2018
 
 绘制项目函数调用图
 """
+import numpy as np
 from pycallgraph import PyCallGraph
 from pycallgraph.output import GraphvizOutput
 from pycallgraph.config import Config

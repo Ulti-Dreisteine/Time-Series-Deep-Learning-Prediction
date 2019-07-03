@@ -13,8 +13,7 @@ import sys
 sys.path.append('../')
 
 from mods.extract_data_and_normalize import extract_implemented_data
-from mods.nn_models import NN, ContinuousEncoder, DiscreteEncoder, initialize_nn_params, initialize_continuous_encoder_params, \
-	initialize_discrete_encoder_params
+from mods.nn_models import NN
 from mods.build_train_and_test_samples_for_nn import build_train_and_verify_datasets
 from mods.config_loader import config
 from mods.loss_criterion import criterion
@@ -22,33 +21,23 @@ from mods.one_hot_encoder import one_hot_encoding
 from mods.data_filtering import savitzky_golay_filtering
 
 
-def save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record):
+def save_models(nn_model, train_loss_record, verify_loss_record):
 	"""保存模型文件"""
 	target_columns = config.conf['model_params']['target_columns']
 	
 	# 保存模型文件
-	torch.save(nn.state_dict(), '../tmp/nn_state_dict_{}.pth'.format(target_columns))
-	torch.save(continuous_encoder.state_dict(), '../tmp/nn_continuous_encoder_state_dict_{}.pth'.format(target_columns))
-	torch.save(discrete_encoder.state_dict(), '../tmp/nn_discrete_encoder_state_dict_{}.pth'.format(target_columns))
+	torch.save(nn_model.state_dict(), '../tmp/nn_state_dict_{}.pth'.format(target_columns))
 	
 	# 保存模型结构参数
 	model_struc_params = {
-		'nn': {
-			'input_size': nn.input_size,
-			'hidden_size': nn.hidden_size,
-			'output_size': nn.output_size
-		},
-		'continuous_encoder': {
-			'input_size': continuous_encoder.input_size,
-			'output_size': continuous_encoder.output_size
-		},
-		'discrete_encoder': {
-			'input_size': discrete_encoder.input_size,
-			'output_size': discrete_encoder.output_size
+		'nn_model': {
+			'input_size': nn_model.input_size,
+			'hidden_sizes': nn_model.hidden_sizes,
+			'output_size': nn_model.output_size
 		}
 	}
 	
-	with open('../tmp/nn_model_struc_params.json', 'w') as f:
+	with open('../tmp/nn_struc_params.json', 'w') as f:
 		json.dump(model_struc_params, f)
 	
 	# 损失函数记录
@@ -80,39 +69,20 @@ if __name__ == '__main__':
 	trainloader, verifyloader, X_train, y_train, X_verify, y_verify, continuous_columns_num = build_train_and_verify_datasets()
 	
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
-	input_size = continuous_columns_num
-	output_size = input_size // 2
-	continuous_encoder = ContinuousEncoder(input_size, output_size)
-	
-	input_size = X_train.shape[1] - continuous_columns_num
-	output_size = input_size // 2
-	discrete_encoder = DiscreteEncoder(input_size, output_size)
-	
-	input_size = continuous_encoder.connect_1.out_features + discrete_encoder.connect_0.out_features
-	hidden_size = [input_size // 2, y_train.shape[1] // 2]
+	input_size = X_train.shape[1]
 	output_size = y_train.shape[1]
-	nn = NN(input_size, hidden_size, output_size)
-	
-	# 初始化模型参数
-	continuous_encoder = initialize_continuous_encoder_params(continuous_encoder)
-	discrete_encoder = initialize_discrete_encoder_params(discrete_encoder)
-	nn = initialize_nn_params(nn)
+	hidden_sizes = [input_size, input_size, input_size // 2, output_size]
+	nn_model = NN(input_size, hidden_sizes, output_size)
 	
 	if use_cuda:
 		torch.cuda.empty_cache()
 		trainloader = [(train_x.cuda(), train_y.cuda()) for (train_x, train_y) in trainloader]
 		verifyloader = [(verify_x.cuda(), verify_y.cuda()) for (verify_x, verify_y) in verifyloader]
-		continuous_encoder = continuous_encoder.cuda()
-		discrete_encoder = discrete_encoder.cuda()
-		nn = nn.cuda()
+		nn_model = nn_model.cuda()
 	
 	# 指定优化器 —————————————————————————————————————————————————————————————————————————————————————————————————————————————————————
 	optimizer = torch.optim.Adam(
-		[
-			{'params': nn.parameters()},
-			{'params': continuous_encoder.parameters()},
-			{'params': discrete_encoder.parameters()}
-		],
+		nn_model.parameters(),
 		lr = lr
 	)
 	
@@ -121,15 +91,9 @@ if __name__ == '__main__':
 	
 	for epoch in range(epochs):
 		# 训练集
-		nn.train()
-		continuous_encoder.train()
-		discrete_encoder.train()
+		nn_model.train()
 		for train_x, train_y in trainloader:
-			con_x, dis_x = train_x[:, :continuous_columns_num], train_x[:, continuous_columns_num:]
-			con_encoded_x = continuous_encoder(con_x)
-			dis_encoded_x = discrete_encoder(dis_x)
-			encoded_x = torch.cat((con_encoded_x, dis_encoded_x), dim = 1)
-			y_train_p = nn(encoded_x)
+			y_train_p = nn_model(train_x)
 			y_train_t = train_y
 			train_loss_fn = criterion(y_train_p, y_train_t)
 			
@@ -139,16 +103,10 @@ if __name__ == '__main__':
 		
 		train_loss_record.append(train_loss_fn)
 		
-		nn.eval()
-		continuous_encoder.eval()
-		discrete_encoder.eval()
+		nn_model.eval()
 		with torch.no_grad():
 			for verify_x, verify_y in verifyloader:
-				con_x, dis_x = verify_x[:, :continuous_columns_num], verify_x[:, continuous_columns_num:]
-				con_encoded_x = continuous_encoder(con_x)
-				dis_encoded_x = discrete_encoder(dis_x)
-				encoded_x = torch.cat((con_encoded_x, dis_encoded_x), dim = 1)
-				y_verify_p = nn(encoded_x)
+				y_verify_p = nn_model(verify_x)
 				y_verify_t = verify_y
 				verify_loss_fn = criterion(y_verify_p, y_verify_t)
 			verify_loss_record.append(verify_loss_fn)
@@ -158,18 +116,6 @@ if __name__ == '__main__':
 		
 		# 保存模型
 		if epoch % 500 == 0:
-			save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)
+			save_models(nn_model, train_loss_record, verify_loss_record)
 	
-	save_models(nn, continuous_encoder, discrete_encoder, train_loss_record, verify_loss_record)
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-
+	save_models(nn_model, train_loss_record, verify_loss_record)
