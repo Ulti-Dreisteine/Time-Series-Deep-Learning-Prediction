@@ -74,7 +74,7 @@ def nn_feature_importance_results():
 		plt.legend([target_columns[i]], fontsize = 6, loc = 'upper right')
 		plt.tight_layout()
 	
-	plt.savefig('../tmp/nn_feature_importance.png')
+	plt.savefig('../graphs/nn_feature_importance.png')
 
 
 if __name__ == '__main__':

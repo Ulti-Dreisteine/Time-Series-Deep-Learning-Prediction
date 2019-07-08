@@ -122,4 +122,4 @@ if __name__ == '__main__':
 			plt.pause(1.0)
 	
 	plt.tight_layout()
-	plt.savefig('../tmp/ccf_analysis_on_continuous.png')
+	plt.savefig('../graphs/ccf_analysis_on_continuous.png')
