@@ -72,7 +72,7 @@ def savitzky_golay(y, window_size, order, deriv = 0, rate = 1):
 	try:
 		window_size = np.abs(np.int(window_size))
 		order = np.abs(np.int(order))
-	except:
+	except Exception:
 		raise ValueError("window_size and order have to be of type int")
 	if window_size % 2 != 1 or window_size < 1:
 		raise TypeError("window_size size must be a positive odd number")
@@ -103,7 +103,7 @@ def band_pass_filtering(data):
 	embed_lags = config.conf['model_params']['embed_lags']
 	samples_len = len(data_copy)
 
-	columns = [config.conf['model_params']['target_column']] + config.conf['model_params']['continuous_columns']
+	columns = list(set(config.conf['model_params']['target_columns'] + config.conf['model_params']['continuous_columns']))
 	filtered_results = []
 	for column in columns:
 		lag = embed_lags[column]
@@ -111,7 +111,7 @@ def band_pass_filtering(data):
 		fft_results = np.fft.fft(time_series)
 		fft_real, fft_imag = fft_results.real, fft_results.imag
 
-		frequencies_to_keep = [0, round(samples_len / lag)]
+		frequencies_to_keep = [samples_len // lag, samples_len // 2]
 		kept_frequencies_list = list(
 			np.arange(
 				frequencies_to_keep[0],
@@ -136,7 +136,9 @@ def band_pass_filtering(data):
 		filtered_results.append(filtered_series)
 	filtered_results = pd.DataFrame(np.array(filtered_results).T, columns = columns)
 	
-	data_filtered = pd.concat([data_copy[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
+	data_filtered = pd.concat(
+		[data[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
+	data_filtered = pd.concat([data_filtered, data[config.conf['model_params']['discrete_columns']]], axis = 1, sort = False)
 
 	return data_filtered
 
@@ -161,7 +163,8 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 	filtered_results = np.array(filtered_results).T
 	filtered_results = pd.DataFrame(filtered_results, columns = columns)
 	
-	data_filtered = pd.concat([data[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
+	data_filtered = pd.concat(
+		[data[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
 	data_filtered = pd.concat([data_filtered, data[config.conf['model_params']['discrete_columns']]], axis = 1, sort = False)
 	
 	return data_filtered
