@@ -14,7 +14,7 @@ import sys
 sys.path.append('../')
 
 from mods.config_loader import config
-from mods.data_filtering import band_pass_filtering, savitzky_golay_filtering
+from mods.data_filtering import savitzky_golay_filtering
 
 
 def cross_correlation(x_series, y_series, d):
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	data = savitzky_golay_filtering(data)
 	
 	columns = config.conf['model_params']['continuous_columns']
-	diagnosis_locs = np.arange(0, 20000, 1000)
+	diagnosis_locs = np.arange(0, 20000, 3000)
 	series_len = 200
 	detect_len = 5000
 	
@@ -103,8 +103,8 @@ if __name__ == '__main__':
 			ccf_and_time_lags[col_x][col_y] = {'ccf_value': mean_peak_value, 'time_lag': mean_time_lag}
 			
 			plt.subplot(len(columns), len(columns), len(columns) * columns.index(col_x) + columns.index(col_y) + 1)
-			plt.plot(range(start_loc - detect_len, end_loc - detect_len), mean_ccf_seg)
-			plt.fill_between(range(start_loc - detect_len, end_loc - detect_len), mean_ccf_seg)
+			plt.plot(range(start_loc - detect_len, end_loc - detect_len), np.abs(mean_ccf_seg))
+			plt.fill_between(range(start_loc - detect_len, end_loc - detect_len), np.abs(mean_ccf_seg))
 			plt.plot([start_loc - detect_len, end_loc - detect_len], [0, 0], 'k--', linewidth = 0.3)
 			plt.plot([0, 0], [-1.0, 1.0], 'k-', linewidth = 0.3)
 			plt.xlim([-series_len // 2, series_len // 2])
@@ -122,4 +122,4 @@ if __name__ == '__main__':
 			plt.pause(1.0)
 	
 	plt.tight_layout()
-	plt.savefig('../graphs/ccf_analysis_on_continuous.png')
+	plt.savefig('../tmp/ccf_analysis_on_continuous.png')
