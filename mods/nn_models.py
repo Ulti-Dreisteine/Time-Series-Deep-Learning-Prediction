@@ -47,7 +47,7 @@ class NN(nn.Module):
 		self.bn_out = nn.BatchNorm1d(self.output_size)
 		
 	def _init_layer(self, layer):
-		init.normal_(layer.weight)
+		init.uniform_(layer.weight)
 		init.constant_(layer.bias, 0.5)
 		
 	def forward(self, x):

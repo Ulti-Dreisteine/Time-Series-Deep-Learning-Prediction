@@ -20,18 +20,21 @@ from mods.config_loader import config
 from mods.build_train_and_test_samples_for_nn import build_test_samples_and_targets, build_samples_data_frame
 from mods.nn_models import load_models
 from mods.nn_partial_derivative_matrix import nn_partial_derivative_matrix
-from mods.project_graph import callgraph
+# from mods.project_graph import callgraph
 
 
 def model_prediction(X):
 	"""模型预测"""
 	nn_model = load_models()
 	var_x = Variable(torch.from_numpy(X.astype(np.float32)))
+	if torch.cuda.is_available():
+		nn_model = nn_model.cuda()
+		var_x = var_x.cuda()
 	y = nn_model(var_x).detach().cpu().numpy()
 	return y
 
 
-@callgraph
+# @callgraph
 def nn_feature_importance_results():
 	# 设定计算参数
 	pred_dim = config.conf['model_params']['pred_dim']
@@ -71,6 +74,7 @@ def nn_feature_importance_results():
 		plt.xticks(fontsize = 6)
 		plt.yticks(fontsize = 6)
 		plt.ylabel('importance score', fontsize = 6)
+		# plt.ylim([0, 2])
 		plt.legend([target_columns[i]], fontsize = 6, loc = 'upper right')
 		plt.tight_layout()
 	

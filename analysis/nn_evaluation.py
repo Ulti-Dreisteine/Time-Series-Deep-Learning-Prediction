@@ -49,7 +49,7 @@ def model_prediction(X_test, nn_model):
 def model_evaluation(y_test_raw, y_test_model, column, show_fitting = True, show_scatter = True, show_evals = True,
 					 show_heatmap = True):
 	"""模型效果评估"""
-	steps = [0, 11, 23, 47]
+	steps = [0, 11, 23]
 	rmse_results, smape_results, mae_results, r2_results = [], [], [], []
 	for i in range(y_test_raw.shape[1]):
 		rmse_results.append(rmse(y_test_raw[:, i], y_test_model[:, i]))
@@ -58,7 +58,7 @@ def model_evaluation(y_test_raw, y_test_model, column, show_fitting = True, show
 		r2_results.append(r2(y_test_raw[:, i], y_test_model[:, i]))
 	
 	print('\n========== {} PREDICTION EFFECTS ==========='.format(column))
-	for step in [0, 3, 7, 11, 23, 47, 71]:
+	for step in [0, 3, 7, 11, 23]:
 		print('{} hr: rmse {:4f}, smape {:4f}, mae {:4f}, r2 {:4f}'.format(
 			step, rmse_results[step], smape_results[step], mae_results[step], r2_results[step])
 		)
@@ -103,7 +103,7 @@ def model_evaluation(y_test_raw, y_test_model, column, show_fitting = True, show
 			if eval_methods.index(method) == 0:
 				plt.title('model evaluations with different methods')
 			plt.plot(eval(method + '_results'))
-			plt.xlim([0, 72])
+			plt.xlim([0, 23])
 			plt.ylabel(method)
 			if eval_methods.index(method) == len(eval_methods) - 1:
 				plt.ylim([-0.2, 1.0])
@@ -189,23 +189,6 @@ def nn_evaluation_results():
 	plt.xlabel('epoch')
 	plt.ylabel('loss value')
 	plt.tight_layout()
-	
-	# # 误差箱型图
-	# # errors = (y_test_model - y_test_raw) / y_test_raw  	# 百分比误差
-	# errors = np.abs(y_test_model_dict['pm10'] - y_test_raw_dict['pm10'])  # 绝对误差
-	#
-	# samples_len = errors.shape[0]
-	# errors = pd.DataFrame(errors.reshape(-1, 1), columns = ['error'])
-	# errors['index'] = errors.index
-	# errors['time_step'] = errors.loc[:, 'index'].apply(lambda x: int(np.floor(x / samples_len)) + 1)
-	# plt.figure(figsize = [12, 3])
-	# sns.boxplot(data = errors, x = 'time_step', y = 'error', color = 'b', fliersize = 1, linewidth = 0.1)
-	# plt.xticks(fontsize = 6)
-	# plt.yticks(fontsize = 6)
-	# plt.xlabel('pred time step', fontsize = 10)
-	# plt.ylabel('error', fontsize = 10)
-	# plt.grid(True)
-	# plt.tight_layout()
 
 
 if __name__ == '__main__':
