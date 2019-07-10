@@ -8,8 +8,8 @@ exist_record_time: '2018050513'
 model_params:
     # variable params
     target_columns: ['pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
-    selected_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2', 'wd', 'weather', 'clock_num', 'weekday', 'month']
-    continuous_columns: ['temp', 'sd', 'ws', 'pm10', 'pm25', 'co', 'no2', 'o3', 'so2']
+    selected_columns: ['temp', 'sd', 'ws', 'pm25', 'pm10', 'so2', 'co', 'no2', 'o3', 'wd', 'weather', 'clock_num', 'weekday', 'month']
+    continuous_columns: ['temp', 'sd', 'ws', 'pm25', 'pm10', 'so2', 'co', 'no2', 'o3']
     discrete_columns: ['wd', 'weather', 'clock_num', 'weekday', 'month']
     variable_bounds:
         pm25: [0, 500]
@@ -44,12 +44,12 @@ model_params:
         so2: 3
 
     acf_lags:
-        pm25: 78
+        pm25: 52
         temp: 10
-        sd: 10
-        ws: 13
-        pm10: 80
-        co: 78
-        no2: 33
-        o3: 8
-        so2: 78
+        sd: 8
+        ws: 30
+        pm10: 54
+        co: 48
+        no2: 52
+        o3: 10
+        so2: 70
