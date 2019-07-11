@@ -143,7 +143,7 @@ def band_pass_filtering(data):
 	return data_filtered
 
 
-def savitzky_golay_filtering(data, window_size = 11, order = 2):
+def savitzky_golay_filtering(data, window_size = 11, order = 2, save = True):
 	"""
 	使用savitzky-golay滤波
 	:param data: pd.DataFrame, 带滤波数据表, columns = [target_column, selected_columns_0, selected_column_1, ...]
@@ -166,6 +166,9 @@ def savitzky_golay_filtering(data, window_size = 11, order = 2):
 	data_filtered = pd.concat(
 		[data[['city', 'ptime', 'time_stamp']], filtered_results], axis = 1, sort = False).reset_index(drop = True)
 	data_filtered = pd.concat([data_filtered, data[config.conf['model_params']['discrete_columns']]], axis = 1, sort = False)
+	
+	if save:
+		data_filtered.to_csv('../tmp/total_implemented_normalized_data.csv', index = False)
 	
 	return data_filtered
 

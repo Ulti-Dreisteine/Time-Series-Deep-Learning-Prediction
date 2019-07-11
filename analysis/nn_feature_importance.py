@@ -40,7 +40,7 @@ def nn_feature_importance_results():
 	target_columns = config.conf['model_params']['target_columns']
 	
 	# 计算特征重要性
-	data = pd.read_csv('../tmp/total_encoded_data.csv')
+	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
 	_, _, columns = build_samples_data_frame(data)
 	columns = np.array(columns[1:]).reshape(-1, 1)
 	

@@ -49,35 +49,21 @@ def build_samples_data_frame(data):
 	discrete_columns = config.conf['model_params']['discrete_columns']
 	embed_lags = config.conf['model_params']['embed_lags']
 	acf_lags = config.conf['model_params']['acf_lags']
-	discrete_acf_lags = config.conf['model_params']['discrete_acf_lags']
-	discrete_embed_lags = config.conf['model_params']['discrete_embed_lags']
 	
 	# 求得连续数值型变量各自对应的维数
 	embed_dims = dict()
-	for column in continuous_columns:
+	for column in continuous_columns + discrete_columns:
 		embed_dims[column] = acf_lags[column] // embed_lags[column]
 		print('embed_dim for {} is {}'.format(column, embed_dims[column]))
 	continuous_columns_num = sum(embed_dims.values())
 	
 	# 连续数值变量流形样本构建
 	data_new = data[['time_stamp']]
-	for column in continuous_columns:
+	for column in continuous_columns + discrete_columns:
 		samples = build_single_dim_manifold(data.loc[:, column], embed_dims[column], embed_lags[column])
 		columns = [column + '_{}'.format(i) for i in range(samples.shape[1])]
 		samples = pd.DataFrame(samples, columns = columns)
 		data_new = pd.concat([data_new, samples], axis = 1, sort = True)
-	
-	# 离散类别变量流形样本构建
-	for column in discrete_columns:
-		discrete_data = data.loc[:, [p for p in data.columns if column in p]]
-		for sub_column in discrete_data.columns:
-			samples = build_single_dim_manifold(
-				discrete_data.loc[:, sub_column],
-				discrete_acf_lags[column] // discrete_embed_lags[column],
-				discrete_embed_lags[column])
-			columns = [sub_column + '_{}'.format(i) for i in range(samples.shape[1])]
-			samples = pd.DataFrame(samples, columns = columns)
-			data_new = pd.concat([data_new, samples], axis = 1, sort = True)
 			
 	return data_new, continuous_columns_num, list(data_new.columns)
 
@@ -111,7 +97,7 @@ def build_train_samples_and_targets():
 		y_train: np.ndarray, 训练集目标
 	"""
 	# 载入数据
-	data = pd.read_csv('../tmp/total_encoded_data.csv')
+	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
 	
 	samples_df, continuous_columns_num, _ = build_samples_data_frame(data)
 	targets_df = build_targets_data_frame(data)
@@ -141,7 +127,7 @@ def build_test_samples_and_targets():
 		y_test: np.ndarray, 测试集目标
 	"""
 	# 载入数据
-	data = pd.read_csv('../tmp/total_encoded_data.csv')
+	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
 	
 	samples_df, continuous_columns_num, _ = build_samples_data_frame(data)
 	targets_df = build_targets_data_frame(data)
@@ -188,3 +174,8 @@ def build_train_and_verify_datasets():
 	
 	return trainloader, verifyloader, X_train, y_train, X_verify, y_verify, continuous_columns_num
 
+
+if __name__ == '__main__':
+	# 载入数据
+	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
+	data_new, continuous_columns_num, columns = build_samples_data_frame(data)

@@ -56,8 +56,7 @@ if __name__ == '__main__':
 	total_implemented_normalized_data = extract_implemented_data(file_name, use_local = True, save = True)
 	
 	# 数据滤波和编码
-	data = savitzky_golay_filtering(total_implemented_normalized_data)
-	_ = one_hot_encoding(data, save = True)
+	_ = savitzky_golay_filtering(total_implemented_normalized_data)
 	
 	# 设定参数 ————————————————————————————————————————————————————————————————————————————————————————-——————————————————————————————
 	use_cuda = torch.cuda.is_available()
@@ -71,7 +70,7 @@ if __name__ == '__main__':
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
 	input_size = X_train.shape[1]
 	output_size = y_train.shape[1]
-	hidden_sizes = [input_size, input_size // 2, input_size // 2, 2 * output_size, 2 * output_size, 2 * output_size]
+	hidden_sizes = [input_size, input_size, input_size, 2 * output_size, 2 * output_size, 2 * output_size]
 	nn_model = NN(input_size, hidden_sizes, output_size)
 	
 	if use_cuda:

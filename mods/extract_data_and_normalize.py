@@ -97,6 +97,7 @@ def extract_implemented_data(raw_data_file, show_plot = True, use_local = True, 
 	target_columns = config.conf['model_params']['target_columns']
 	selected_columns = config.conf['model_params']['selected_columns']
 	continuous_columns = config.conf['model_params']['continuous_columns']
+	discrete_columns = config.conf['model_params']['discrete_columns']
 	
 	if use_local:
 		total_implemented_normalized_data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
@@ -152,10 +153,11 @@ def extract_implemented_data(raw_data_file, show_plot = True, use_local = True, 
 
 		# 归一化
 		print('\n')
-		for column in continuous_columns:
+		for column in continuous_columns + discrete_columns:
 			print('max {}: {}'.format(column, np.max(implemented_data[column])))
-
-		total_implemented_normalized_data = normalize(implemented_data, continuous_columns)
+			
+		total_implemented_normalized_data = normalize(implemented_data, continuous_columns + discrete_columns)
+		
 		total_implemented_normalized_data = total_implemented_normalized_data[
 			['city', 'ptime', 'time_stamp'] + list(set(target_columns + selected_columns))
 		]
