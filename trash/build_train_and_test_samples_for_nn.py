@@ -11,6 +11,7 @@ import copy
 import numpy as np
 import pandas as pd
 from scipy.ndimage.interpolation import shift
+import json
 import sys
 import torch
 import torch.utils.data as Data
@@ -40,26 +41,21 @@ def build_single_dim_manifold(time_series, embed_dim, lag, direc = 1):
 
 def build_samples_data_frame(data):
 	"""
-	构建目标数据集
+	构建样本集
 	:param data: pd.DataFrame, 数据表
 	:return:
+		data_new: pd.DataFrame, 构建的全量数据集，每个字段对应向量从前往后对应时间戳降序排列
 	"""
-	# 参数
 	continuous_columns = config.conf['model_params']['continuous_columns']
-	discrete_columns = config.conf['model_params']['discrete_columns']
 	embed_lags = config.conf['model_params']['embed_lags']
 	acf_lags = config.conf['model_params']['acf_lags']
-	discrete_acf_lags = config.conf['model_params']['discrete_acf_lags']
-	discrete_embed_lags = config.conf['model_params']['discrete_embed_lags']
 	
-	# 求得连续数值型变量各自对应的维数
 	embed_dims = dict()
 	for column in continuous_columns:
-		embed_dims[column] = acf_lags[column] // embed_lags[column]
+		embed_dims[column] = int(np.floor(acf_lags[column] / embed_lags[column]))
 		print('embed_dim for {} is {}'.format(column, embed_dims[column]))
 	continuous_columns_num = sum(embed_dims.values())
 	
-	# 连续数值变量流形样本构建
 	data_new = data[['time_stamp']]
 	for column in continuous_columns:
 		samples = build_single_dim_manifold(data.loc[:, column], embed_dims[column], embed_lags[column])
@@ -67,18 +63,8 @@ def build_samples_data_frame(data):
 		samples = pd.DataFrame(samples, columns = columns)
 		data_new = pd.concat([data_new, samples], axis = 1, sort = True)
 	
-	# 离散类别变量流形样本构建
-	for column in discrete_columns:
-		discrete_data = data.loc[:, [p for p in data.columns if column in p]]
-		for sub_column in discrete_data.columns:
-			samples = build_single_dim_manifold(
-				discrete_data.loc[:, sub_column],
-				discrete_acf_lags[column] // discrete_embed_lags[column],
-				discrete_embed_lags[column])
-			columns = [sub_column + '_{}'.format(i) for i in range(samples.shape[1])]
-			samples = pd.DataFrame(samples, columns = columns)
-			data_new = pd.concat([data_new, samples], axis = 1, sort = True)
-			
+	data_new = pd.concat([data_new, data.drop(['city', 'time_stamp'] + continuous_columns, axis = 1)], axis = 1, sort = True)
+	
 	return data_new, continuous_columns_num, list(data_new.columns)
 
 

@@ -54,3 +54,19 @@ model_params:
         o3: 10
         so2: 70
 
+    discrete_embed_lags:
+        wd: 1
+        weather: 1
+        clock_num: 1
+        weekday: 1
+        month: 1
+
+    discrete_acf_lags:
+        wd: 24
+        weather: 24
+        clock_num: 1  # 确定的关系只用1就可以了
+        weekday: 1
+        month: 1
+
+
+
