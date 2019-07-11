@@ -25,11 +25,11 @@ class NN(nn.Module):
 		self.hidden_sizes = hidden_sizes
 		self.output_size = output_size
 		
-		self.bn_in = nn.BatchNorm1d(self.input_size, momentum = 0.5)
+		self.bn_in = nn.BatchNorm1d(self.input_size)
 		
 		self.fc_0 = nn.Linear(self.input_size, self.hidden_sizes[0])
 		self._init_layer(self.fc_0)
-		self.bn_0 = nn.BatchNorm1d(self.hidden_sizes[0], momentum = 0.5)
+		self.bn_0 = nn.BatchNorm1d(self.hidden_sizes[0])
 		
 		self.fcs = []
 		self.bns = []
@@ -37,7 +37,7 @@ class NN(nn.Module):
 			fc_i = nn.Linear(self.hidden_sizes[i], self.hidden_sizes[i + 1])
 			setattr(self, 'fc_{}'.format(i + 1), fc_i)
 			self._init_layer(fc_i)
-			bn_i = nn.BatchNorm1d(self.hidden_sizes[i + 1], momentum = 0.5)
+			bn_i = nn.BatchNorm1d(self.hidden_sizes[i + 1])
 			setattr(self, 'bn_{}'.format(i + 1), bn_i)
 			self.fcs.append(fc_i)
 			self.bns.append(bn_i)
@@ -58,7 +58,7 @@ class NN(nn.Module):
 		for i in range(len(self.fcs)):
 			x = self.fcs[i](x)
 			x = self.bns[i](x)
-			x = torch.tanh(x)
+			x = f.elu(x)
 		
 		x = self.fc_out(x)
 		x = self.bn_out(x)

@@ -25,7 +25,7 @@ model_params:
     # defined params
     samples_len: 15000
     pred_horizon_len: 8500
-    pred_dim: 30
+    pred_dim: 24
 
     # model training params
     lr: 0.0001
@@ -64,7 +64,7 @@ model_params:
     discrete_acf_lags:
         wd: 24
         weather: 24
-        clock_num: 1  # 确定的关系只用1就可以了
+        clock_num: 1
         weekday: 1
         month: 1
 

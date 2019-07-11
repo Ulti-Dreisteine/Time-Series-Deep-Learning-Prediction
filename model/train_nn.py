@@ -71,7 +71,7 @@ if __name__ == '__main__':
 	# 构造神经网络模型 —————————————————————————————————————————————————————————————————————————————————————————————————————————————-———
 	input_size = X_train.shape[1]
 	output_size = y_train.shape[1]
-	hidden_sizes = [2 * input_size, 2 * input_size, 2 * input_size, 2 * output_size, 2 * output_size, 2 * output_size]
+	hidden_sizes = [input_size, input_size // 2, input_size // 2, 2 * output_size, 2 * output_size, 2 * output_size]
 	nn_model = NN(input_size, hidden_sizes, output_size)
 	
 	if use_cuda:
