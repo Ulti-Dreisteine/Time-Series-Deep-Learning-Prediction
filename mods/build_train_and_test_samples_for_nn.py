@@ -44,18 +44,28 @@ def build_samples_data_frame(data):
 	:param data: pd.DataFrame, 数据表
 	:return:
 	"""
+	data = data.copy()
+	
 	# 参数
 	continuous_columns = config.conf['model_params']['continuous_columns']
 	discrete_columns = config.conf['model_params']['discrete_columns']
 	embed_lags = config.conf['model_params']['embed_lags']
 	acf_lags = config.conf['model_params']['acf_lags']
+	forecast_lags = config.conf['model_params']['forecast_lags']
 	
 	# 求得连续数值型变量各自对应的维数
 	embed_dims = dict()
 	for column in continuous_columns + discrete_columns:
-		embed_dims[column] = acf_lags[column] // embed_lags[column]
+		if column in forecast_lags.keys():
+			embed_dims[column] = (acf_lags[column] + forecast_lags[column]) // embed_lags[column]
+		else:
+			embed_dims[column] = acf_lags[column] // embed_lags[column]
 		print('embed_dim for {} is {}'.format(column, embed_dims[column]))
 	continuous_columns_num = sum(embed_dims.values())
+	
+	# 对包含预测的数据向上平移
+	for column in forecast_lags.keys():
+		data[column] = shift(data[column], -1 * forecast_lags[column])
 	
 	# 连续数值变量流形样本构建
 	data_new = data[['time_stamp']]
@@ -179,3 +189,5 @@ if __name__ == '__main__':
 	# 载入数据
 	data = pd.read_csv('../tmp/total_implemented_normalized_data.csv')
 	data_new, continuous_columns_num, columns = build_samples_data_frame(data)
+	
+	

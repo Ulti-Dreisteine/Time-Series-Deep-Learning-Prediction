@@ -189,6 +189,8 @@ def nn_evaluation_results():
 	plt.xlabel('epoch')
 	plt.ylabel('loss value')
 	plt.tight_layout()
+	
+	plt.savefig('../graphs/nn_train_verify_loss_curves.png')
 
 
 if __name__ == '__main__':

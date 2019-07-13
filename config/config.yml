@@ -70,6 +70,17 @@ model_params:
         weekday: 24
         month: 24
 
+    forecast_lags:
+        temp: 24
+        sd: 24
+        ws: 24
+        wd: 24
+        weather: 24
+        clock_num: 24
+        weekday: 24
+        month: 24
+
+
 
 
 
