@@ -31,10 +31,10 @@ model_params:
     # defined params
     samples_len: 15000
     pred_horizon_len: 8500
-    pred_dim: 24
+    pred_dim: 72
 
     # model training params
-    lr: 0.0001
+    lr: 0.0002
     epochs: 60000
     batch_size: 3000
 
@@ -64,11 +64,11 @@ model_params:
         no2: 52
         o3: 10
         so2: 70
-        wd: 24
-        weather: 24
-        clock_num: 24
-        weekday: 24
-        month: 24
+        wd: 72
+        weather: 72
+        clock_num: 72
+        weekday: 72
+        month: 72
 
     forecast_lags:
         temp: 24

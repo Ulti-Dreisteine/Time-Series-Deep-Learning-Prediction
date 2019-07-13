@@ -1,1 +1,1 @@
-{"nn_model": {"input_size": 646, "hidden_sizes": [646, 646, 646, 288, 288, 288], "output_size": 144}}
+{"nn_model": {"input_size": 886, "hidden_sizes": [886, 886, 886, 864, 864, 864], "output_size": 432}}
