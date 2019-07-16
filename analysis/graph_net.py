@@ -100,12 +100,12 @@ if __name__ == '__main__':
 	for edge in edges:
 		weights.append(g.get_edge_data(edge[0], edge[1])['weight'])
 
-	pos = nx.spring_layout(g, iterations = 1000)
+	pos = nx.spring_layout(g, iterations = 5000)
 	plt.figure('network', figsize = [6, 6])
 	nx.draw_networkx_nodes(g, pos, node_color = 'w', node_size = 200)
 	nx.draw_networkx_edges(
-		g, pos, edge_width = 5 * weights, edge_color = weights, edge_cmap = plt.cm.Blues)
-	nx.draw_networkx_labels(g, pos, font_size = 8, font_weight = 'bold')
+		g, pos, edge_width = 10 * weights, edge_color = weights, edge_cmap = plt.cm.Blues, arrowsize = 6)
+	nx.draw_networkx_labels(g, pos, font_size = 6, font_weight = 'bold')
 	plt.savefig('../graphs/graph_net.png')
 	
 

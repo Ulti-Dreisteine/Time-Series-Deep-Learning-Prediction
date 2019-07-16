@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import json
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
 import sys
 
 sys.path.append('../')
@@ -61,10 +62,13 @@ def mean_ccf(series_a, series_b, d, seg_len, start_locs):
 		raise ValueError('start locs末尾位置不能被分析')
 	
 	for start_loc in start_locs:
-		series_list.append(
-			[
-				series_a.copy()[start_loc: start_loc + seg_len],
-				series_b.copy()[(start_loc + d): (start_loc + seg_len + d)]])
+		series_x = erase_long_term_trend(series_a.copy()[start_loc: start_loc + seg_len])
+		series_y = erase_long_term_trend(series_b.copy()[(start_loc + d): (start_loc + seg_len + d)])
+		series_list.append([series_x, series_y])
+		# series_list.append(
+		# 	[
+		# 		series_a.copy()[start_loc: start_loc + seg_len],
+		# 		series_b.copy()[(start_loc + d): (start_loc + seg_len + d)]])
 	
 	series_list = pd.DataFrame(series_list, columns = ['series_a', 'series_b'])
 	series_list['ccf_value'] = series_list.apply(lambda x: cross_correlation(x[0], x[1], 0), axis = 1)
@@ -90,6 +94,15 @@ def time_delay_ccf_func(series_a, series_b, d_list, seg_len, start_locs):
 	return time_delay_ccf
 
 
+def erase_long_term_trend(series):
+	"""消除数据长期趋势"""
+	series = series.copy().reshape(-1, 1)
+	lr = LinearRegression().fit(np.arange(len(series)).reshape(-1, 1), series)
+	series -= lr.predict(np.arange(len(series)).reshape(-1, 1))
+	series = series.flatten()
+	return series
+
+
 if __name__ == '__main__':
 	# 参数设定
 	columns = config.conf['model_params']['continuous_columns']
@@ -102,8 +115,8 @@ if __name__ == '__main__':
 	# CCF时滞计算
 	d_list = np.arange(-100, 102, 2)
 	seg_len = 1000  # 单次ccf计算选取的序列长度
-	start_locs = np.arange(1000, 22000, 100)
-	
+	start_locs = np.arange(2000, 22000, 1000)
+
 	plt.figure(figsize = [10, 14])
 	total_time_delay_ccf = {}
 	for col_x in columns:
@@ -113,7 +126,7 @@ if __name__ == '__main__':
 			series_a, series_b = np.array(data[col_x]), np.array(data[col_y])
 			time_delay_ccf = time_delay_ccf_func(series_a, series_b, d_list, seg_len, start_locs)
 			total_time_delay_ccf[col_x][col_y] = time_delay_ccf
-			
+
 			plt.subplot(
 				len(columns), len(target_columns), len(target_columns) * columns.index(col_x) + target_columns.index(col_y) + 1)
 			plt.plot(time_delay_ccf.keys(), np.abs(list(time_delay_ccf.values())))
@@ -126,15 +139,16 @@ if __name__ == '__main__':
 			plt.yticks(fontsize = 6)
 			if col_x == columns[0]:
 				plt.title(col_y, fontsize = 8)
-			
+
 			if col_y == target_columns[0]:
 				plt.ylabel(col_x, fontsize = 8)
-			
+
 			plt.tight_layout()
 			plt.show()
 			plt.pause(1.0)
-	
+
 	plt.savefig('../graphs/ccf_analysis_on_continuous.png')
-	
+
 	with open('../tmp/total_time_delay_ccf_results.json', 'w') as f:
 		json.dump(total_time_delay_ccf, f)
+	
